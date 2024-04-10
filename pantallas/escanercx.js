@@ -8,14 +8,34 @@ const logoImage = require('./imagenes/logorectangular.png');
 function EscanerCX() {
   const navigation = useNavigation();
   const [folio, setFolio] = useState('');
+  const [selectedProcedure, setSelectedProcedure] = useState(null);
+  const [procedureTime, setProcedureTime] = useState({
+    'Entrada Transfer': '',
+    'Salida Transfer': '',
+    'Entrada CX': '',
+    'Salida CX': '',
+    'Dado de Alta': '',
+  });
 
   const handleScan = () => {
     navigation.navigate('Registrocx');
   };
 
   const handleProcedureSelection = (procedure) => {
-    // Aquí puedes realizar acciones adicionales con la opción seleccionada
-    console.log('Procedimiento seleccionado:', procedure);
+    setSelectedProcedure(procedure);
+    const currentTime = new Date().toLocaleString();
+    setProcedureTime(prevState => ({
+      ...prevState,
+      [procedure]: currentTime,
+    }));
+  };
+
+  const handleSend = () => {
+    
+    console.log('Folio:', folio);
+    console.log('Procedimiento seleccionado:', selectedProcedure);
+    
+    navigation.navigate('OtraPantalla');
   };
 
   return (
@@ -33,27 +53,42 @@ function EscanerCX() {
 
         <View style={styles.procedureContainer}>
           <Text style={styles.procedureText}>Entrada transfer:</Text>
-          <TouchableOpacity onPress={() => handleProcedureSelection('Entrada Transfer')} style={styles.input}></TouchableOpacity>
+          <TouchableOpacity onPress={() => handleProcedureSelection('Entrada Transfer')} style={styles.input}>
+            <Text style={styles.inputText}>{selectedProcedure === 'Entrada Transfer' ? 'Seleccionado' : ''}</Text>
+          </TouchableOpacity>
+          <Text style={styles.timeText}>{procedureTime['Entrada Transfer']}</Text>
         </View>
 
         <View style={styles.procedureContainer}>
           <Text style={styles.procedureText}>Salida transfer:</Text>
-          <TouchableOpacity onPress={() => handleProcedureSelection('Salida Transfer')} style={styles.input}></TouchableOpacity>
+          <TouchableOpacity onPress={() => handleProcedureSelection('Salida Transfer')} style={styles.input}>
+            <Text style={styles.inputText}>{selectedProcedure === 'Salida Transfer' ? 'Seleccionado' : ''}</Text>
+          </TouchableOpacity>
+          <Text style={styles.timeText}>{procedureTime['Salida Transfer']}</Text>
         </View>
 
         <View style={styles.procedureContainer}>
           <Text style={styles.procedureText}>Entrada CX:</Text>
-          <TouchableOpacity onPress={() => handleProcedureSelection('Entrada CX')} style={styles.input}></TouchableOpacity>
+          <TouchableOpacity onPress={() => handleProcedureSelection('Entrada CX')} style={styles.input}>
+            <Text style={styles.inputText}>{selectedProcedure === 'Entrada CX' ? 'Seleccionado' : ''}</Text>
+          </TouchableOpacity>
+          <Text style={styles.timeText}>{procedureTime['Entrada CX']}</Text>
         </View>
 
         <View style={styles.procedureContainer}>
           <Text style={styles.procedureText}>Salida CX:</Text>
-          <TouchableOpacity onPress={() => handleProcedureSelection('Salida CX')} style={styles.input}></TouchableOpacity>
+          <TouchableOpacity onPress={() => handleProcedureSelection('Salida CX')} style={styles.input}>
+            <Text style={styles.inputText}>{selectedProcedure === 'Salida CX' ? 'Seleccionado' : ''}</Text>
+          </TouchableOpacity>
+          <Text style={styles.timeText}>{procedureTime['Salida CX']}</Text>
         </View>
 
         <View style={styles.procedureContainer}>
           <Text style={styles.procedureText}>Dado de alta:</Text>
-          <TouchableOpacity onPress={() => handleProcedureSelection('Dado de Alta')} style={styles.input}></TouchableOpacity>
+          <TouchableOpacity onPress={() => handleProcedureSelection('Dado de Alta')} style={styles.input}>
+            <Text style={styles.inputText}>{selectedProcedure === 'Dado de Alta' ? 'Seleccionado' : ''}</Text>
+          </TouchableOpacity>
+          <Text style={styles.timeText}>{procedureTime['Dado de Alta']}</Text>
         </View>
 
         <View style={styles.folioContainer}>
@@ -68,7 +103,7 @@ function EscanerCX() {
         </View>
 
         <View style={styles.bottomContainer}>
-          <TouchableOpacity style={styles.sendButton}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
             <Text style={styles.sendButtonText}>Enviar</Text>
           </TouchableOpacity>
         </View>
@@ -88,7 +123,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 50, // Ajuste para colocar el contenido en la parte superior
+    paddingTop: 50, 
   },
   logoContainer: {
     marginBottom: 20,
@@ -125,6 +160,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     height: 30,
     borderRadius: 5,
+    justifyContent: 'center',
+  },
+  inputText: {
+    paddingHorizontal: 10,
+    color: '#2F9FFA',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   separator: {
     height: 20, // Espacio entre el botón y la primera línea
@@ -150,7 +192,7 @@ const styles = StyleSheet.create({
   bottomContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20, // Espacio entre las líneas anteriores y este contenedor
+    marginTop: 20,
   },
   sendButton: {
     backgroundColor: '#2F9FFA',
@@ -163,6 +205,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  timeText: {
+    marginLeft: 'auto',
+    color: '#FFFFFF',
   },
 });
 

@@ -2,25 +2,25 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, View, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { useNavigation } from '@react-navigation/native';
-import { useBarcode } from './BarcodeContext'; // Importa el hook useBarcode
+import { useBarcode } from './BarcodeContext'; 
 
 const Registrocx = () => {
   const [scannedData, setScannedData] = useState(null);
-  const [scanDateTime, setScanDateTime] = useState(null); // Estado para almacenar la fecha y hora del escaneo
+  const [scanDateTime, setScanDateTime] = useState(null); 
   const cameraRef = useRef(null);
   const navigation = useNavigation();
-  const { setBarcode } = useBarcode(); // Obtiene la función setBarcode del contexto
+  const { setBarcode } = useBarcode(); 
 
   const handleBarcodeRead = ({ nativeEvent }) => {
     const barcodeValue = nativeEvent.codeStringValue;
-    const currentDateTime = new Date().toLocaleString(); // Obtiene la fecha y hora actual
+    const currentDateTime = new Date().toLocaleString(); 
     setScannedData(barcodeValue);
-    setScanDateTime(currentDateTime); // Almacena la fecha y hora del escaneo
-    setBarcode(barcodeValue); // Establece el código de barras en el contexto
+    setScanDateTime(currentDateTime); 
+    setBarcode(barcodeValue); 
   };
 
   const handleRegister = () => {
-    navigation.navigate('registrodatoscx'); // Navega a la pantalla RegistroDatosCX
+    navigation.navigate('registrodatoscx'); // Navega 
   };
 
   return (
