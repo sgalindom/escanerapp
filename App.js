@@ -9,6 +9,8 @@ import Login from './pantallas/login';
 import MainPanel from './pantallas/MainPanel';
 import EscanerCX from './pantallas/escanercx';
 import Registrocx from './pantallas/registrocx';
+import RegistroDatosCX from './pantallas/registrodatoscx';
+
 
 const Stack = createStackNavigator();
 
@@ -22,6 +24,8 @@ function App() {
             <Stack.Screen name="MainPanel" component={MainPanel} />
             <Stack.Screen name="EscanerCX" component={EscanerCX} />
             <Stack.Screen name="Registrocx" component={Registrocx} />
+            <Stack.Screen name="registrodatoscx" component={RegistroDatosCX} />
+
           </Stack.Navigator>
         </NavigationContainer>
       </DataProvider>
