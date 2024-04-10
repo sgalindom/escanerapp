@@ -77,7 +77,7 @@ android {
     namespace "com.escaner"
     defaultConfig {
         applicationId "com.escaner"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 23 // Aumentar este valor a al menos 23
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
