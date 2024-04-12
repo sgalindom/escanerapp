@@ -1,15 +1,18 @@
-// App.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { BarcodeProvider } from '../escaner/pantallas/BarcodeContext';
 import { DataProvider } from './pantallas/DataContext'; 
+import firebase from 'firebase/app';
+import 'firebase/firestore';
 
 import Login from './pantallas/login';
 import MainPanel from './pantallas/MainPanel';
 import EscanerCX from './pantallas/escanercx';
 import Registrocx from './pantallas/registrocx';
 import RegistroDatosCX from './pantallas/registrodatoscx';
+
+import Descripcion from './pantallas/descripcioetapas';
 
 
 const Stack = createStackNavigator();
@@ -25,6 +28,7 @@ function App() {
             <Stack.Screen name="EscanerCX" component={EscanerCX} />
             <Stack.Screen name="Registrocx" component={Registrocx} />
             <Stack.Screen name="registrodatoscx" component={RegistroDatosCX} />
+            <Stack.Screen name="descripcionetapas" component={Descripcion} />
 
           </Stack.Navigator>
         </NavigationContainer>

@@ -23,6 +23,11 @@ const Registrocx = () => {
     navigation.navigate('registrodatoscx'); // Navega 
   };
 
+  const handleScanAgain = () => {
+    setScannedData(null); // Resetea los datos escaneados
+    setScanDateTime(null);
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar hidden />
@@ -43,6 +48,9 @@ const Registrocx = () => {
             <Text style={styles.text}>Fecha y hora del escaneo: {scanDateTime}</Text>
             <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
               <Text style={styles.registerButtonText}>Registrar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.scanAgainButton} onPress={handleScanAgain}>
+              <Text style={styles.scanAgainButtonText}>Intentar de Nuevo</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -86,6 +94,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   registerButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  scanAgainButton: {
+    backgroundColor: '#FF5733',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  scanAgainButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

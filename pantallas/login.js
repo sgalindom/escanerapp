@@ -61,12 +61,14 @@ function Login({ navigation }) {
         <Text style={styles.welcomeText}>Bienvenido</Text>
         <TextInput
           placeholder="Usuario"
+          placeholderTextColor="black"
           onChangeText={(text) => setUsername(text)}
           value={username}
           style={styles.input}
         />
         <TextInput
           placeholder="Contraseña"
+          placeholderTextColor="black"
           secureTextEntry
           onChangeText={(text) => setPassword(text)}
           value={password}
@@ -75,9 +77,6 @@ function Login({ navigation }) {
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <TouchableOpacity onPress={handleLogin} style={styles.button}>
           <Text style={styles.buttonText}>Iniciar sesión</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('RecuperarContraseña')} style={styles.registerButton}>
-          <Text style={styles.registerButtonText}>Recuperar contraseña</Text>
         </TouchableOpacity>
       </View>
       {isLoading && (
@@ -146,17 +145,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
-  },
-  registerButton: {
-    marginTop: 10,
-  },
-  registerButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
   },
   errorText: {
     color: 'red',

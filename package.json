@@ -12,10 +12,13 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/masked-view": "^0.1.11",
+    "@react-native-firebase/app": "^19.2.0",
+    "@react-native-firebase/firestore": "^19.2.0",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.29",
     "axios": "^1.6.8",
     "expo-barcode-scanner": "^12.9.3",
+    "firebase": "^10.10.0",
     "react": "18.2.0",
     "react-native": "0.73.6",
     "react-native-camera-kit": "^13.0.0",

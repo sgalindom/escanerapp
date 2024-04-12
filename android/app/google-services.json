@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633306335968",
+    "project_id": "escanerclr",
+    "storage_bucket": "escanerclr.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633306335968:android:15241476ce47f129f5de85",
+        "android_client_info": {
+          "package_name": "com.escaner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALlorlWAmBfNFUbFdPoL65LFfnCdLphnM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
