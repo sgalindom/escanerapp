@@ -1,56 +1,39 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { firebase } from '@react-native-firebase/auth';
 
 const backgroundImage = require('./imagenes/Login.jpg');
 const logoImage = require('./imagenes/logo_2.png');
 
-const API_URL = 'http://192.168.11.247:2001/api/auth/loginMenus';
-
 function Login({ navigation }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = async () => {
-      setIsLoading(true);
+  const handleLogin = async () => {
+    setIsLoading(true);
 
-      try {
-        const response = await axios.post(API_URL, {
-          usuario: username,
-          clave: password,
-          modulo: 'HIS'
-        });
+    try {
+      const response = await firebase.auth().signInWithEmailAndPassword(email, password);
 
-        if (response.data.tokens.accessToken) {
-          console.log('Token recibido:', response.data.tokens.accessToken); 
-          await AsyncStorage.setItem('accessToken', response.data.tokens.accessToken);
-          navigation.navigate('MainPanel', { username: username });
+      if (response.user) {
+        console.log('Inicio de sesión exitoso');
+        if (email === 'admin@gmail.com') {
+          navigation.navigate('paneladmin');
         } else {
-          setError('Usuario o contraseña incorrectos');
+          navigation.navigate('MainPanel', { email: email });
         }
-      } catch (error) {
-        console.error('Error de red:', error);
-
-        if (error.response) {
-          console.error('Respuesta del servidor:', error.response.data);
-          console.error('Código de estado:', error.response.status);
-          Alert.alert('Error', 'Ocurrió un error en la solicitud. Por favor, inténtalo de nuevo más tarde.');
-        } else if (error.request) {
-          console.error('No se recibió respuesta del servidor');
-          Alert.alert('Error', 'No se recibió respuesta del servidor. Por favor, verifica tu conexión a internet.');
-        } else {
-          console.error('Error al configurar la solicitud:', error.message);
-          Alert.alert('Error', 'Ocurrió un error al procesar la solicitud. Por favor, inténtalo de nuevo más tarde.');
-        }
-
-        setError('Ocurrió un error al procesar la solicitud');
+      } else {
+        setError('Usuario o contraseña incorrectos');
       }
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      setError('Ocurrió un error al iniciar sesión');
+    }
 
-      setIsLoading(false);
-    };
+    setIsLoading(false);
+  };
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
@@ -60,10 +43,10 @@ function Login({ navigation }) {
         </View>
         <Text style={styles.welcomeText}>Bienvenido</Text>
         <TextInput
-          placeholder="Usuario"
+          placeholder="Correo electrónico"
           placeholderTextColor="black"
-          onChangeText={(text) => setUsername(text)}
-          value={username}
+          onChangeText={(text) => setEmail(text)}
+          value={email}
           style={styles.input}
         />
         <TextInput

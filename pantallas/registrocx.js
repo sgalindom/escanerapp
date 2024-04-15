@@ -13,18 +13,20 @@ const Registrocx = () => {
 
   const handleBarcodeRead = ({ nativeEvent }) => {
     const barcodeValue = nativeEvent.codeStringValue;
-    const currentDateTime = new Date().toLocaleString(); 
+    const currentDateTime = new Date();
+    const formattedDate = `${currentDateTime.getFullYear()}-${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}-${currentDateTime.getDate().toString().padStart(2, '0')}`;
+    const formattedTime = `${currentDateTime.getHours().toString().padStart(2, '0')}:${currentDateTime.getMinutes().toString().padStart(2, '0')}`;
     setScannedData(barcodeValue);
-    setScanDateTime(currentDateTime); 
-    setBarcode(barcodeValue); 
+    setScanDateTime(`${formattedDate} ${formattedTime}`);
+    setBarcode(barcodeValue);
   };
 
   const handleRegister = () => {
-    navigation.navigate('registrodatoscx'); // Navega 
+    navigation.navigate('registrodatoscx', { scanDateTime: scanDateTime });
   };
 
   const handleScanAgain = () => {
-    setScannedData(null); // Resetea los datos escaneados
+    setScannedData(null);
     setScanDateTime(null);
   };
 
@@ -45,7 +47,7 @@ const Registrocx = () => {
         {scannedData && (
           <View style={styles.overlay}>
             <Text style={styles.text}>Código QR: {scannedData}</Text>
-            <Text style={styles.text}>Fecha y hora del escaneo: {scanDateTime}</Text>
+            <Text style={styles.text}>Hora del escaneo: {scanDateTime}</Text>
             <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
               <Text style={styles.registerButtonText}>Registrar</Text>
             </TouchableOpacity>

@@ -14,6 +14,8 @@ import RegistroDatosCX from './pantallas/registrodatoscx';
 
 import Descripcion from './pantallas/descripcioetapas';
 
+import Admin from './pantallas/paneladmin';
+
 
 const Stack = createStackNavigator();
 
@@ -29,6 +31,7 @@ function App() {
             <Stack.Screen name="Registrocx" component={Registrocx} />
             <Stack.Screen name="registrodatoscx" component={RegistroDatosCX} />
             <Stack.Screen name="descripcionetapas" component={Descripcion} />
+            <Stack.Screen name="paneladmin" component={Admin} />
 
           </Stack.Navigator>
         </NavigationContainer>

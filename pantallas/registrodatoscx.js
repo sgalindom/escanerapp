@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from './BarcodeContext';
@@ -7,14 +7,45 @@ import firestore from '@react-native-firebase/firestore';
 const fondoEscanerImage = require('./imagenes/Login.jpg');
 const logoImage = require('./imagenes/logorectangular.png');
 
-const RegistroDatosCX = () => {
+const RegistroDatosCX = ({ route }) => {
   const { barcode } = useBarcode();
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedProcedure, setSelectedProcedure] = useState(null);
-  const areas = ['Área 1', 'Área 2'];
-  const procedures = ['Entrada transfer', 'Salida transfer', 'Entrada CX', 'Salida CX'];
-  const scanDateTime = new Date().toLocaleString();
+  const [areas, setAreas] = useState([]);
+  const [procedureTimes, setProcedureTimes] = useState({
+    'Entrada Transfer': null,
+    'Entrada CX': null,
+    'Salida CX': null,
+  });
+  const [finalizationEnabled, setFinalizationEnabled] = useState(false);
+  const [scanDate, setScanDate] = useState('');
+  const [scanTime, setScanTime] = useState('');
   const navigation = useNavigation();
+
+  useEffect(() => {
+    updateAreas(selectedProcedure);
+  }, [selectedProcedure]);
+
+  useEffect(() => {
+    // Establecer la fecha y hora recibida como parámetro en los estados
+    if (route.params && route.params.scanDateTime) {
+      const [date, time] = route.params.scanDateTime.split(' ');
+      setScanDate(date);
+      setScanTime(time);
+    }
+  }, [route.params]);
+
+  const updateAreas = (procedure) => {
+    if (procedure === 'Entrada Transfer') {
+      setAreas(['Silla 1', 'Silla 2']);
+    } else if (procedure === 'Entrada CX' || procedure === 'Salida CX') {
+      setAreas(['Sala de CX 1', 'Sala de CX 2']);
+    } else if (procedure === 'Finalización') {
+      setAreas(['Hospitalización', 'Salida']);
+    } else {
+      setAreas([]);
+    }
+  };
 
   const handleRegister = async () => {
     try {
@@ -27,6 +58,16 @@ const RegistroDatosCX = () => {
         );
         return;
       }
+
+      const currentDateTime = new Date();
+      const currentHour = currentDateTime.getHours();
+      const currentMinutes = currentDateTime.getMinutes();
+      const currentSeconds = currentDateTime.getSeconds();
+      const formattedDate = `${currentDateTime.getFullYear()}-${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}-${currentDateTime.getDate().toString().padStart(2, '0')}`;
+      const formattedTime = `${currentHour.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
+
+      setScanDate(formattedDate);
+      setScanTime(formattedTime);
 
       const folioRef = firestore().collection('Foliosescaneados').doc(barcode);
       const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
@@ -41,11 +82,24 @@ const RegistroDatosCX = () => {
       } else {
         await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
           selectedArea: selectedArea,
-          scanDateTime: scanDateTime,
+          scanDate: formattedDate,
+          scanTime: formattedTime,
         });
 
-        // Llamar a la función para navegar a la pantalla de descripción de etapas
-        handleNavigateToDescription(); // Navegar después de registrar
+        // Actualizar el estado de los tiempos del procedimiento
+        setProcedureTimes(prevState => ({
+          ...prevState,
+          [selectedProcedure]: formattedTime,
+        }));
+
+        // Verificar si todos los tiempos anteriores se han registrado
+        if (selectedProcedure === 'Salida CX') {
+          const allTimesRegistered = Object.values(procedureTimes).every(time => time !== null);
+          setFinalizationEnabled(allTimesRegistered);
+        }
+
+        // Navegar a la pantalla de descripción de etapas
+        handleNavigateToDescription();
       }
     } catch (error) {
       console.error('Error al registrar información:', error);
@@ -56,7 +110,7 @@ const RegistroDatosCX = () => {
     try {
       const snapshot = await firestore().collection('Foliosescaneados').doc(barcode).collection('Procedimientosregistrados').get();
       const dataList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      navigation.navigate('descripcionetapas', { data: dataList }); // Enviar todos los datos
+      navigation.navigate('descripcionetapas', { data: dataList });
     } catch (error) {
       console.error('Error al obtener la información:', error);
     }
@@ -85,25 +139,34 @@ const RegistroDatosCX = () => {
           <Text style={styles.heading}>Registro de Tiempos de Ingreso</Text>
         </View>
         <Text style={styles.barcode}>Folio Escaneado: {barcode}</Text>
-        <Text style={styles.scanDateTime}>Fecha y Hora del Escaneo: {scanDateTime}</Text>
+        <Text style={styles.scanDateTime}>Fecha del Escaneo: {scanDate}</Text>
+        <Text style={styles.scanDateTime}>Hora del Escaneo: {scanTime}</Text>
 
         <View style={styles.dropdown}>
           <Text style={styles.dropdownTitle}>Selecciona un Procedimiento</Text>
           <ScrollView style={styles.dropdownOptions}>
-            {renderOptions(procedures, setSelectedProcedure, selectedProcedure)}
+            {renderOptions(['Entrada Transfer', 'Entrada CX', 'Salida CX', 'Finalización'], setSelectedProcedure, selectedProcedure)}
           </ScrollView>
         </View>
 
-        <View style={styles.dropdown}>
-          <Text style={styles.dropdownTitle}>Selecciona un Área</Text>
-          <ScrollView style={styles.dropdownOptions}>
-            {renderOptions(areas, setSelectedArea, selectedArea)}
-          </ScrollView>
-        </View>
+        {selectedProcedure && (
+          <View style={styles.dropdown}>
+            <Text style={styles.dropdownTitle}>Selecciona un Área</Text>
+            <ScrollView style={styles.dropdownOptions}>
+              {renderOptions(areas, setSelectedArea, selectedArea)}
+            </ScrollView>
+          </View>
+        )}
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+        <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={!selectedProcedure || !selectedArea}>
           <Text style={styles.registerButtonText}>Registrar</Text>
         </TouchableOpacity>
+
+        {finalizationEnabled && (
+          <TouchableOpacity style={styles.finalizationButton} onPress={() => console.log('Finalización registrada')}>
+            <Text style={styles.finalizationButtonText}>Finalización</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.descriptionButton} onPress={handleNavigateToDescription}>
           <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
@@ -157,7 +220,7 @@ const styles = StyleSheet.create({
   scanDateTime: {
     fontSize: 16,
     color: 'white',
-    marginBottom: 20,
+    marginBottom: 10,
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
@@ -210,7 +273,22 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
-  // Estilos para el botón de descripción de etapas
+  finalizationButton: {
+    backgroundColor: '#2F9FFA',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    elevation: 5,
+    marginBottom: 10,
+  },
+  finalizationButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
   descriptionButton: {
     backgroundColor: '#2F9FFA',
     paddingHorizontal: 20,
