@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, ImageBackground, Image, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, ImageBackground, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const fondoEscanerImage = require('./imagenes/Login.jpg');
@@ -29,7 +29,15 @@ const DescripcionEtapas = () => {
 
     const renderCards = () => {
         if (!data) return null;
-        return data.map(item => (
+
+        // Ordenar los procedimientos por tiempo de escaneo
+        const sortedData = [...data].sort((a, b) => {
+            if (a.scanTime < b.scanTime) return -1;
+            if (a.scanTime > b.scanTime) return 1;
+            return 0;
+        });
+
+        return sortedData.map(item => (
             <View key={item.id} style={styles.card}>
                 <Text style={styles.cardText}>Procedimiento: {item.id}</Text>
                 <Text style={styles.cardText}>Área: {item.selectedArea}</Text>
@@ -42,10 +50,6 @@ const DescripcionEtapas = () => {
     const handleScanNewTime = () => {
         navigation.navigate('EscanerCX');
     };
-
-    const tiempo1 = data.length > 1 ? calculateTimeDifference(data[0].scanTime, data[1].scanTime) : 'No disponible';
-    const tiempo2 = data.length > 2 ? calculateTimeDifference(data[1].scanTime, data[2].scanTime) : 'No disponible';
-    const tiempo3 = data.length > 3 ? calculateTimeDifference(data[2].scanTime, data[3].scanTime) : 'No disponible';
 
     return (
         <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
@@ -60,11 +64,6 @@ const DescripcionEtapas = () => {
                     ) : (
                         <>
                             {renderCards()}
-                            <View style={styles.timeSummary}>
-                                <Text style={styles.summaryText}>Tiempo 1: {tiempo1}</Text>
-                                <Text style={styles.summaryText}>Tiempo 2: {tiempo2}</Text>
-                                <Text style={styles.summaryText}>Tiempo 3: {tiempo3}</Text>
-                            </View>
                             <TouchableOpacity style={styles.scanNewButton} onPress={handleScanNewTime}>
                                 <Text style={styles.scanNewButtonText}>Escanear Nuevo Tiempo</Text>
                             </TouchableOpacity>
@@ -124,18 +123,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: 'white',
-    },
-    timeSummary: {
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        borderRadius: 10,
-        padding: 20,
-        marginBottom: 20,
-        width: '100%',
-    },
-    summaryText: {
-        fontSize: 16,
-        color: 'black',
-        marginBottom: 5,
     },
     scanNewButton: {
         backgroundColor: '#2F9FFA',
