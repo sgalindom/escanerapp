@@ -10,27 +10,41 @@ const DescripcionEtapas = () => {
     const route = useRoute();
     const { data } = route.params;
     const [loading, setLoading] = useState(true);
+    const [totalScanTime, setTotalScanTime] = useState(null); 
 
     useEffect(() => {
         setLoading(false);
+        calculateTotalScanTime();
     }, []);
 
     const calculateTimeDifference = (start, end) => {
         if (!start || !end) return null;
 
-        const startTime = new Date(`2024-01-01T${start}`);
-        const endTime = new Date(`2024-01-01T${end}`);
-        const difference = endTime.getTime() - startTime.getTime();
+        // Extraer horas y minutos de los tiempos de escaneo
+        const [startHour, startMinute] = start.split(':').map(Number);
+        const [endHour, endMinute] = end.split(':').map(Number);
+        
+        // Calcular la diferencia en minutos
+        const differenceInMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
 
-        const minutes = Math.floor(difference / (1000 * 60));
+        return differenceInMinutes;
+    };
 
-        return `${minutes} minutos`;
+    const calculateTotalScanTime = () => {
+        if (!data) return;
+
+        const firstStartTime = data[0]?.scanTime;
+        const lastEndTime = data[data.length - 1]?.scanTime;
+
+        if (firstStartTime && lastEndTime) {
+            const totalDuration = calculateTimeDifference(firstStartTime, lastEndTime);
+            setTotalScanTime(totalDuration);
+        }
     };
 
     const renderCards = () => {
         if (!data) return null;
 
-        // Ordenar los procedimientos por tiempo de escaneo
         const sortedData = [...data].sort((a, b) => {
             if (a.scanTime < b.scanTime) return -1;
             if (a.scanTime > b.scanTime) return 1;
@@ -63,6 +77,11 @@ const DescripcionEtapas = () => {
                         <Text style={styles.loadingText}>Cargando...</Text>
                     ) : (
                         <>
+                            {totalScanTime !== null && (
+                                <Text style={styles.totalScanTime}>
+                                    Tiempo Total de Escaneo: {Math.abs(totalScanTime)} minutos
+                                </Text>
+                            )}
                             {renderCards()}
                             <TouchableOpacity style={styles.scanNewButton} onPress={handleScanNewTime}>
                                 <Text style={styles.scanNewButtonText}>Escanear Nuevo Tiempo</Text>
@@ -140,6 +159,16 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
     },
+    totalScanTime: { 
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+        marginBottom: 20,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: -1, height: 1 },
+        textShadowRadius: 10,
+    },
 });
 
 export default DescripcionEtapas;
+    

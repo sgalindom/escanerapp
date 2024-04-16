@@ -20,7 +20,7 @@ const RegistroDatosCX = ({ route }) => {
     const [finalizationEnabled, setFinalizationEnabled] = useState(false);
     const [scanDate, setScanDate] = useState('');
     const [scanTime, setScanTime] = useState('');
-    const [patientId, setPatientId] = useState('');
+    const [patientCounter, setPatientCounter] = useState(0); // Nuevo estado para el contador de pacientes
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -35,10 +35,8 @@ const RegistroDatosCX = ({ route }) => {
             setScanTime(time);
         }
         
-        if (barcode && selectedProcedure) {
-            generatePatientId(barcode, selectedProcedure);
-        }
-    }, [route.params, barcode, selectedProcedure]);
+        generatePatientId(barcode);
+    }, [route.params]);
 
     const updateAreas = (procedure) => {
         if (procedure === 'Entrada Transfer') {
@@ -52,17 +50,19 @@ const RegistroDatosCX = ({ route }) => {
         }
     };
 
-    const generatePatientId = async (barcodeValue, selectedProcedure) => {
+    const generatePatientId = async (barcodeValue) => {
         try {
-           
-            const lastPatientSnapshot = await firestore().collection('Foliosescaneados').doc(barcodeValue).collection('Procedimientosregistrados').where('selectedProcedure', '==', selectedProcedure).orderBy('createdAt', 'desc').limit(1).get();
+            const folioRef = firestore().collection('Foliosescaneados').doc(barcodeValue);
+            const lastPatientSnapshot = await folioRef.collection('Procedimientosregistrados').orderBy('createdAt', 'desc').limit(1).get();
             let lastPatientNumber = 0;
+            
             if (!lastPatientSnapshot.empty) {
                 const lastPatientData = lastPatientSnapshot.docs[0].data();
-                lastPatientNumber = parseInt(lastPatientData.patientId.replace('paciente', '')) || 0;
+                lastPatientNumber = parseInt(lastPatientData.patientId) || 0; // Obtener el último número de paciente guardado
             }
+            
             const nextPatientNumber = lastPatientNumber + 1;
-            setPatientId(`paciente${nextPatientNumber}`);
+            setPatientCounter(nextPatientNumber); // Actualizar el contador de pacientes
         } catch (error) {
             console.error('Error al generar el ID del paciente:', error);
         }
@@ -105,7 +105,7 @@ const RegistroDatosCX = ({ route }) => {
                     selectedArea: selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
-                    patientId: patientId, 
+                    patientId: patientCounter.toString(), // Usar el contador de pacientes como ID
                 });
 
                 // Verificar si el procedimiento es de entrada o salida de CX
@@ -115,7 +115,7 @@ const RegistroDatosCX = ({ route }) => {
                     await tiemposRef.collection(selectedProcedure).add({
                         area: selectedArea,
                         time: formattedTime,
-                        patientId: patientId, // Guardar el paciente ID
+                        patientId: patientCounter.toString(), // Usar el contador de pacientes como ID
                         procedure: selectedProcedure,
                         date: formattedDate,
                     });

@@ -1,14 +1,16 @@
+// Registrocx.js
 import React, { useRef, useState, useEffect } from 'react';
 import { StyleSheet, View, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from './BarcodeContext'; 
 import firestore from '@react-native-firebase/firestore';
+import RegistroDatosCX from './registrodatoscx';
 
 const Registrocx = () => {
   const [scannedData, setScannedData] = useState(null);
   const [scanDateTime, setScanDateTime] = useState(null); 
-  const [patientId, setPatientId] = useState('');
+  const [patientCounter, setPatientCounter] = useState(0); // Nuevo estado para el contador de pacientes
   const cameraRef = useRef(null);
   const navigation = useNavigation();
   const { setBarcode } = useBarcode(); 
@@ -40,14 +42,14 @@ const Registrocx = () => {
         lastPatientNumber = parseInt(lastPatientData.patientId.replace('paciente', '')) || 0;
       }
       const nextPatientNumber = lastPatientNumber + 1;
-      setPatientId(`paciente${nextPatientNumber}`);
+      setPatientCounter(nextPatientNumber);
     } catch (error) {
       console.error('Error al generar el ID del paciente:', error);
     }
   };
 
   const handleRegister = () => {
-    navigation.navigate('registrodatoscx', { scanDateTime: scanDateTime });
+    navigation.navigate('registrodatoscx', { scanDateTime: scanDateTime, patientCounter: patientCounter }); // Pasar patientCounter como una prop
   };
 
   const handleScanAgain = () => {
@@ -140,3 +142,4 @@ const styles = StyleSheet.create({
 });
 
 export default Registrocx;
+
