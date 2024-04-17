@@ -14,7 +14,7 @@ function MainPanel() {
   };
 
   const handleNavigateToUrgencias = () => {
-    navigation.navigate('Urgencias');
+    navigation.navigate('proximamente');
   };
 
   const handleLogout = async () => {
@@ -22,12 +22,10 @@ function MainPanel() {
     navigation.replace('Login');
   };
 
+  
+
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <View style={styles.curveContainer}></View>
-        <Text style={styles.welcomeText}>Bienvenido</Text>
-      </View>
       <ImageBackground source={fondoMainImage} style={styles.backgroundImage}>
         <View style={styles.contentContainer}>
           <View style={styles.logoContainer}>
@@ -56,26 +54,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF', 
-  },
-  headerContainer: {
-    backgroundColor: '#FFFFFF', 
-  },
-  curveContainer: {
-    width: '100%',
-    height: 50,
-    backgroundColor: 'transparent',
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    overflow: 'hidden',
-    position: 'absolute',
-    top: 0,
-  },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2F9FFA',
-    marginTop: 10,
-    textAlign: 'center',
   },
   backgroundImage: {
     flex: 1,
