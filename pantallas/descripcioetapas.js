@@ -19,26 +19,30 @@ const DescripcionEtapas = () => {
 
     const calculateTimeDifference = (start, end) => {
         if (!start || !end) return null;
-
-        // Extraer horas y minutos de los tiempos de escaneo
-        const [startHour, startMinute] = start.split(':').map(Number);
-        const [endHour, endMinute] = end.split(':').map(Number);
-        
+    
+        // Extraer horas y minutos de la cadena de tiempo
+        const [startHours, startMinutes] = start.split(':').map(Number);
+        const [endHours, endMinutes] = end.split(':').map(Number);
+    
+        // Convertir las horas a minutos totales
+        const startTimeInMinutes = startHours * 60 + startMinutes;
+        const endTimeInMinutes = endHours * 60 + endMinutes;
+    
         // Calcular la diferencia en minutos
-        const differenceInMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
-
+        let differenceInMinutes = endTimeInMinutes - startTimeInMinutes;
+    
         return differenceInMinutes;
     };
 
     const calculateTotalScanTime = () => {
         if (!data) return;
 
-        const firstStartTime = data[0]?.scanTime;
-        const lastEndTime = data[data.length - 1]?.scanTime;
+        const firstStartTime = data.find(item => item.id === 'Entrada Transfer')?.scanTime;
+        const lastEndTime = data.find(item => item.id === 'Finalización')?.scanTime;
 
         if (firstStartTime && lastEndTime) {
             const totalDuration = calculateTimeDifference(firstStartTime, lastEndTime);
-            setTotalScanTime(totalDuration);
+            setTotalScanTime(`${totalDuration} minutos`);
         }
     };
 
@@ -79,7 +83,7 @@ const DescripcionEtapas = () => {
                         <>
                             {totalScanTime !== null && (
                                 <Text style={styles.totalScanTime}>
-                                    Tiempo Total de Escaneo: {Math.abs(totalScanTime)} minutos
+                                    Tiempo Total de Escaneo: {totalScanTime}
                                 </Text>
                             )}
                             {renderCards()}
@@ -171,4 +175,3 @@ const styles = StyleSheet.create({
 });
 
 export default DescripcionEtapas;
-    

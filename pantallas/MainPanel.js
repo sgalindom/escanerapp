@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const fondoMainImage = require('./imagenes/Login.jpg');
 const logoImage = require('./imagenes/logo_2.png');
@@ -14,6 +15,11 @@ function MainPanel() {
 
   const handleNavigateToUrgencias = () => {
     navigation.navigate('Urgencias');
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userToken');
+    navigation.replace('Login');
   };
 
   return (
@@ -37,6 +43,9 @@ function MainPanel() {
               <Text style={styles.buttonText}>URGENCIAS</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+          </TouchableOpacity>
         </View>
       </ImageBackground>
     </View>
@@ -87,7 +96,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   buttonWrapper: {
-    marginBottom: 100, 
+    marginBottom: 20, 
   },
   button: {
     backgroundColor: '#FFFFFF', 
@@ -108,6 +117,20 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#2F9FFA', 
     fontSize: 20, 
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#FF6347', 
+    width: 200, 
+    height: 50, 
+    borderRadius: 10, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  logoutButtonText: {
+    color: '#FFFFFF', 
+    fontSize: 16, 
     fontWeight: 'bold',
   },
 });

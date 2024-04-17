@@ -5,7 +5,7 @@ import { Camera, CameraType } from 'react-native-camera-kit';
 import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from './BarcodeContext'; 
 import firestore from '@react-native-firebase/firestore';
-import RegistroDatosCX from './registrodatoscx';
+
 
 const Registrocx = () => {
   const [scannedData, setScannedData] = useState(null);

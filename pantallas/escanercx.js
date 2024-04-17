@@ -12,6 +12,11 @@ function EscanerCX() {
     navigation.navigate('Registrocx');
   };
 
+  const handleRecambioSala = () => {
+    // Navegar a la pantalla de recambio de sala
+    navigation.navigate('recambio');
+  };
+
   return (
     <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
       <View style={styles.container}>
@@ -19,8 +24,14 @@ function EscanerCX() {
           <Image source={logoImage} style={styles.logo} />
         </View>
 
+        {/* Botón para el escaneo */}
         <TouchableOpacity onPress={handleScan} style={styles.button}>
-          <Text style={styles.buttonText}>Escanear</Text>
+          <Text style={styles.buttonText}>Escanear Tiempo</Text>
+        </TouchableOpacity>
+
+        {/* Botón para el recambio de sala */}
+        <TouchableOpacity onPress={handleRecambioSala} style={styles.button}>
+          <Text style={styles.buttonText}>Recambio de Sala</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>

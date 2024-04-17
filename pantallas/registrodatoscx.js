@@ -20,7 +20,7 @@ const RegistroDatosCX = ({ route }) => {
     const [finalizationEnabled, setFinalizationEnabled] = useState(false);
     const [scanDate, setScanDate] = useState('');
     const [scanTime, setScanTime] = useState('');
-    const [patientCounter, setPatientCounter] = useState(0); // Nuevo estado para el contador de pacientes
+    const [patientId, setPatientId] = useState(null); // Añadir el estado para el número de folio
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -28,14 +28,13 @@ const RegistroDatosCX = ({ route }) => {
     }, [selectedProcedure]);
 
     useEffect(() => {
-        
         if (route.params && route.params.scanDateTime) {
             const [date, time] = route.params.scanDateTime.split(' ');
             setScanDate(date);
             setScanTime(time);
         }
-        
-        generatePatientId(barcode);
+
+        generatePatientId(barcode); // Generar el número de folio al escanear un nuevo código de barras
     }, [route.params]);
 
     const updateAreas = (procedure) => {
@@ -62,7 +61,7 @@ const RegistroDatosCX = ({ route }) => {
             }
             
             const nextPatientNumber = lastPatientNumber + 1;
-            setPatientCounter(nextPatientNumber); // Actualizar el contador de pacientes
+            setPatientId(nextPatientNumber); // Actualizar el número de folio
         } catch (error) {
             console.error('Error al generar el ID del paciente:', error);
         }
@@ -105,7 +104,7 @@ const RegistroDatosCX = ({ route }) => {
                     selectedArea: selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
-                    patientId: patientCounter.toString(), // Usar el contador de pacientes como ID
+                    patientId: patientId.toString(), // Usar el número de folio como ID
                 });
 
                 // Verificar si el procedimiento es de entrada o salida de CX
@@ -115,7 +114,7 @@ const RegistroDatosCX = ({ route }) => {
                     await tiemposRef.collection(selectedProcedure).add({
                         area: selectedArea,
                         time: formattedTime,
-                        patientId: patientCounter.toString(), // Usar el contador de pacientes como ID
+                        patientId: patientId.toString(), // Usar el número de folio como ID
                         procedure: selectedProcedure,
                         date: formattedDate,
                     });

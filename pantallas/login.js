@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebase } from '@react-native-firebase/auth';
 
 const backgroundImage = require('./imagenes/Login.jpg');
@@ -11,6 +12,17 @@ function Login({ navigation }) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    checkUserLoggedIn();
+  }, []);
+
+  const checkUserLoggedIn = async () => {
+    const userToken = await AsyncStorage.getItem('userToken');
+    if (userToken) {
+      navigation.replace('MainPanel');
+    }
+  };
+
   const handleLogin = async () => {
     setIsLoading(true);
 
@@ -19,10 +31,11 @@ function Login({ navigation }) {
 
       if (response.user) {
         console.log('Inicio de sesión exitoso');
+        await AsyncStorage.setItem('userToken', response.user.uid);
         if (email === 'admin@gmail.com') {
-          navigation.navigate('paneladmin');
+          navigation.replace('paneladmin');
         } else {
-          navigation.navigate('MainPanel', { email: email });
+          navigation.replace('MainPanel');
         }
       } else {
         setError('Usuario o contraseña incorrectos');
@@ -134,7 +147,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     marginBottom: 10,
-  },
+  },  
   loadingContainer: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center', 
