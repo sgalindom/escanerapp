@@ -16,6 +16,7 @@ import Descripcion from './pantallas/descripcioetapas';
 
 import Admin from './pantallas/paneladmin';
 import Recambio from './pantallas/recambio';
+import Vertiempos from './pantallas/vertiempos';
 
 
 const Stack = createStackNavigator();
@@ -33,7 +34,7 @@ function App() {
             <Stack.Screen name="registrodatoscx" component={RegistroDatosCX} />
             <Stack.Screen name="descripcionetapas" component={Descripcion} />
             <Stack.Screen name="recambio" component={Recambio} />
-
+            <Stack.Screen name="vertiempos" component={Vertiempos} />
             
             <Stack.Screen name="paneladmin" component={Admin} />
 

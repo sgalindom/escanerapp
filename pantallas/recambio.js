@@ -11,26 +11,27 @@ const Recambio = () => {
   const [selectedSala, setSelectedSala] = useState('');
   const [selectedInOut, setSelectedInOut] = useState('');
   const [motivo, setMotivo] = useState('');
-  const [counter, setCounter] = useState(0);
+  const [lastId, setLastId] = useState(0);
 
   useEffect(() => {
-    const fetchCounter = async () => {
+    const fetchLastId = async () => {
       try {
-        const counterRef = firestore().collection('Counters').doc(selectedSala + selectedInOut);
-        const doc = await counterRef.get();
-        if (doc.exists) {
-          setCounter(doc.data().count);
+        const salaRef = firestore().collection('Recambio').doc(selectedSala).collection(selectedInOut);
+        const snapshot = await salaRef.orderBy(firestore.FieldPath.documentId()).limitToLast(1).get();
+        if (!snapshot.empty) {
+          const lastDocument = snapshot.docs[0];
+          const lastDocumentId = parseInt(lastDocument.id.substring(2));
+          setLastId(lastDocumentId);
         } else {
-          await counterRef.set({ count: 0 });
-          setCounter(0);
+          setLastId(0);
         }
       } catch (error) {
-        console.error('Error fetching counter:', error);
+        console.error('Error fetching last ID:', error);
       }
     };
 
     if (selectedSala && selectedInOut) {
-      fetchCounter();
+      fetchLastId();
     }
   }, [selectedSala, selectedInOut]);
 
@@ -44,8 +45,8 @@ const Recambio = () => {
       const currentDate = new Date();
       const formattedDate = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`;
       const formattedTime = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
-      
-      const newId = counter + 1; // Increment the counter to get the new ID
+      const newId = lastId + 1;
+
       const salaRef = firestore().collection('Recambio').doc(selectedSala).collection(selectedInOut);
       await salaRef.doc(`ID${newId}`).set({
         fecha: formattedDate,
@@ -53,8 +54,19 @@ const Recambio = () => {
         motivo: motivo,
       });
 
-      const counterRef = firestore().collection('Counters').doc(selectedSala + selectedInOut);
-      await counterRef.update({ count: newId });
+      // Actualizar contador de la sala
+      const counterRef = firestore().collection('Counters').doc(`${selectedSala}${selectedInOut}`);
+      const counterSnapshot = await counterRef.get();
+      if (counterSnapshot.exists) {
+        await counterRef.update({ count: newId });
+      } else {
+        await counterRef.set({ count: newId });
+      }
+
+      // Calcular y almacenar el tiempo libre
+      if (selectedInOut === 'salida') {
+        await calcularYAlmacenarTiempoLibre(selectedSala, formattedDate, formattedTime, newId);
+      }
 
       Alert.alert(
         'Registro exitoso',
@@ -70,6 +82,41 @@ const Recambio = () => {
     } catch (error) {
       console.error('Error al registrar el recambio de sala:', error);
       alert('Hubo un error al registrar el recambio de sala. Por favor, inténtelo de nuevo.');
+    }
+  };
+
+  const calcularYAlmacenarTiempoLibre = async (sala, fecha, hora, id) => {
+    try {
+      // Obtener la última entrada de la sala para el día actual
+      const entradaRef = firestore().collection('Recambio').doc(sala).collection('entrada');
+      const entradaSnapshot = await entradaRef.where('fecha', '==', fecha).orderBy('hora', 'asc').get();
+      const entradas = entradaSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+
+      // Obtener las salidas correspondientes a las entradas
+      const salidaRef = firestore().collection('Recambio').doc(sala).collection('salida');
+      const salidasSnapshot = await salidaRef.where('fecha', '==', fecha).orderBy('hora', 'asc').get();
+      const salidas = salidasSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
+
+      // Calcular los tiempos libres
+      const tiemposLibres = [];
+      for (let i = 0; i < entradas.length - 1; i++) {
+        const tiempoLibre = Math.round((new Date(`${fecha} ${salidas[i].data.hora}`) - new Date(`${fecha} ${entradas[i + 1].data.hora}`)) / (1000 * 60));
+        tiemposLibres.push(tiempoLibre);
+      }
+
+      // Actualizar o crear el documento de tiempos libres en Firestore
+      const tiemposLibresRef = firestore().collection('TiemposLibres').doc(fecha);
+      const tiemposLibresSnapshot = await tiemposLibresRef.get();
+      if (tiemposLibresSnapshot.exists) {
+        const tiemposLibresData = tiemposLibresSnapshot.data();
+        const tiemposLibresActualizados = { ...tiemposLibresData, [sala]: tiemposLibres };
+        await tiemposLibresRef.update(tiemposLibresActualizados);
+      } else {
+        const tiemposLibresInicial = { [sala]: tiemposLibres };
+        await tiemposLibresRef.set(tiemposLibresInicial);
+      }
+    } catch (error) {
+      console.error('Error al calcular y almacenar el tiempo libre:', error);
     }
   };
 
@@ -202,4 +249,3 @@ const styles = StyleSheet.create({
 });
 
 export default Recambio;
-    

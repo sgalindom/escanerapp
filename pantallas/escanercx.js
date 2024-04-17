@@ -17,6 +17,11 @@ function EscanerCX() {
     navigation.navigate('recambio');
   };
 
+  const handleVerTiempos = () => {
+    // Navegar a la pantalla de Vertiempos
+    navigation.navigate('vertiempos');
+  };
+
   return (
     <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
       <View style={styles.container}>
@@ -32,6 +37,11 @@ function EscanerCX() {
         {/* Botón para el recambio de sala */}
         <TouchableOpacity onPress={handleRecambioSala} style={styles.button}>
           <Text style={styles.buttonText}>Recambio de Sala</Text>
+        </TouchableOpacity>
+
+        {/* Botón para ver tiempos */}
+        <TouchableOpacity onPress={handleVerTiempos} style={styles.button}>
+          <Text style={styles.buttonText}>Tiempos recambio</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
