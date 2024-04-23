@@ -18,7 +18,7 @@ function EscanerCX() {
   };
 
   const handleVerTiempos = () => {
-    // Navegar a la pantalla de Vertiempos
+    
     navigation.navigate('vertiempos');
   };
 
