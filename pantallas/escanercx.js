@@ -29,17 +29,14 @@ function EscanerCX() {
           <Image source={logoImage} style={styles.logo} />
         </View>
 
-        {/* Botón para el escaneo */}
+        
         <TouchableOpacity onPress={handleScan} style={styles.button}>
           <Text style={styles.buttonText}>Escanear Tiempo</Text>
         </TouchableOpacity>
 
-        {/* Botón para el recambio de sala */}
-        <TouchableOpacity onPress={handleRecambioSala} style={styles.button}>
-          <Text style={styles.buttonText}>Recambio de Sala</Text>
-        </TouchableOpacity>
+      
 
-        {/* Botón para ver tiempos */}
+        
         <TouchableOpacity onPress={handleVerTiempos} style={styles.button}>
           <Text style={styles.buttonText}>Tiempos recambio</Text>
         </TouchableOpacity>

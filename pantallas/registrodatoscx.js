@@ -20,7 +20,7 @@ const RegistroDatosCX = ({ route }) => {
     const [finalizationEnabled, setFinalizationEnabled] = useState(false);
     const [scanDate, setScanDate] = useState('');
     const [scanTime, setScanTime] = useState('');
-    const [patientId, setPatientId] = useState(null); // Añadir el estado para el número de folio
+    const [patientId, setPatientId] = useState(null); 
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -34,7 +34,7 @@ const RegistroDatosCX = ({ route }) => {
             setScanTime(time);
         }
 
-        generatePatientId(barcode); // Generar el número de folio al escanear un nuevo código de barras
+        generatePatientId(barcode); 
     }, [route.params]);
 
     const updateAreas = (procedure) => {
@@ -57,11 +57,11 @@ const RegistroDatosCX = ({ route }) => {
             
             if (!lastPatientSnapshot.empty) {
                 const lastPatientData = lastPatientSnapshot.docs[0].data();
-                lastPatientNumber = parseInt(lastPatientData.patientId) || 0; // Obtener el último número de paciente guardado
+                lastPatientNumber = parseInt(lastPatientData.patientId) || 0; 
             }
             
             const nextPatientNumber = lastPatientNumber + 1;
-            setPatientId(nextPatientNumber); // Actualizar el número de folio
+            setPatientId(nextPatientNumber); 
         } catch (error) {
             console.error('Error al generar el ID del paciente:', error);
         }
@@ -104,36 +104,24 @@ const RegistroDatosCX = ({ route }) => {
                     selectedArea: selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
-                    patientId: patientId.toString(), // Usar el número de folio como ID
+                    patientId: patientId.toString(), 
                 });
 
-                // Verificar si el procedimiento es de entrada o salida de CX
                 if (selectedProcedure === 'Entrada CX' || selectedProcedure === 'Salida CX') {
-                    // Guardar los tiempos en la ruta '/Tiempos'
-                    const tiemposRef = firestore().collection('Tiempos').doc('escaneos').collection(selectedArea).doc(barcode);
-                    await tiemposRef.collection(selectedProcedure).add({
-                        area: selectedArea,
-                        time: formattedTime,
-                        patientId: patientId.toString(), // Usar el número de folio como ID
-                        procedure: selectedProcedure,
-                        date: formattedDate,
-                    });
+                    navigation.navigate('recambio'); 
+                } else {
+                    handleNavigateToDescription(); 
                 }
 
-                // Actualizar el estado de los tiempos del procedimiento
                 setProcedureTimes(prevState => ({
                     ...prevState,
                     [selectedProcedure]: formattedTime,
                 }));
 
-                // Verificar si todos los tiempos anteriores se han registrado
                 if (selectedProcedure === 'Salida CX') {
                     const allTimesRegistered = Object.values(procedureTimes).every(time => time !== null);
                     setFinalizationEnabled(allTimesRegistered);
                 }
-
-                // Navegar a la pantalla de descripción de etapas
-                handleNavigateToDescription();
             }
         } catch (error) {
             console.error('Error al registrar información:', error);
