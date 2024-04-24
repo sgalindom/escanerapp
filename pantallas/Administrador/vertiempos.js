@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Image } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 
-const fondoEscanerImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logorectangular.png');
+const fondoEscanerImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logorectangular.png');
 
 const Vertiempos = () => {
   const [selectedDate, setSelectedDate] = useState('');

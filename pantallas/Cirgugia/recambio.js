@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleS
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 
-const fondoEscanerImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logorectangular.png');
+const fondoEscanerImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logorectangular.png');
 
 const Recambio = () => {
   const navigation = useNavigation();

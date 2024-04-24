@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { StyleSheet, View, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { useNavigation } from '@react-navigation/native';
-import { useBarcode } from './BarcodeContext'; 
+import { useBarcode } from '../BarcodeContext'; 
 import firestore from '@react-native-firebase/firestore';
 
 

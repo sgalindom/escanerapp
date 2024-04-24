@@ -4,8 +4,8 @@ import { View, TouchableOpacity, Text, ImageBackground, Image, StyleSheet } from
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const fondoEscanerImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logorectangular.png');
+const fondoEscanerImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logorectangular.png');
 
 function Admin() {
   const navigation = useNavigation();

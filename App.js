@@ -6,26 +6,26 @@ import { DataProvider } from './pantallas/DataContext';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 
-import Login from './pantallas/login';
-import MainPanel from './pantallas/MainPanel';
-import EscanerCX from './pantallas/escanercx';
-import Registrocx from './pantallas/registrocx';
-import RegistroDatosCX from './pantallas/registrodatoscx';
+import Login from './pantallas/Login/login';
+import MainPanel from './pantallas/Panel Principal/MainPanel';
+import EscanerCX from './pantallas/Cirgugia/escanercx';
+import Registrocx from './pantallas/Cirgugia/registrocx';
+import RegistroDatosCX from './pantallas/Cirgugia/registrodatoscx';
 
-import Descripcion from './pantallas/descripcioetapas';
+import Descripcion from './pantallas/Cirgugia/descripcioetapas';
 
-import Admin from './pantallas/paneladmin';
-import Recambio from './pantallas/recambio';
-import Vertiempos from './pantallas/vertiempos';
+import Admin from './pantallas/Administrador/paneladmin';
+import Recambio from './pantallas/Cirgugia/recambio';
+import Vertiempos from './pantallas/Administrador/vertiempos';
 import Proximamente from './pantallas/proximamente';
 
 
 
 
-import EscanerURG from './pantallas/escanerurg';
-import Registrourg from './pantallas/registrourg';
-import registrodatosurg from './pantallas/registrodatosurg';
-import RegistroDatosURG from './pantallas/registrodatosurg';
+import EscanerURG from './pantallas/Urgencias/escanerurg';
+import Registrourg from './pantallas/Urgencias/registrourg';
+
+import RegistroDatosURG from './pantallas/Urgencias/registrodatosurg';
 
 
 const Stack = createStackNavigator();

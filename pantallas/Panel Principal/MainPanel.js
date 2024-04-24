@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet } from
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const fondoMainImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logo_2.png');
+const fondoMainImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logo_2.png');
 
 function MainPanel() {
   const navigation = useNavigation();

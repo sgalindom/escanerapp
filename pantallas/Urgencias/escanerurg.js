@@ -2,25 +2,19 @@ import React from 'react';
 import { View, TouchableOpacity, Text, ImageBackground, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const fondoEscanerImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logorectangular.png');
+const fondoEscanerImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logorectangular.png');
 
-function EscanerCX() {
+function EscanerURG() {
   const navigation = useNavigation();
 
   const handleScan = () => {
-    navigation.navigate('Registrocx');
+    navigation.navigate('registrourg');
   };
 
-  const handleRecambioSala = () => {
-    // Navegar a la pantalla de recambio de sala
-    navigation.navigate('recambio');
-  };
+  
 
-  const handleVerTiempos = () => {
-    // vanegar a la pantalla de ver tiempos
-    navigation.navigate('vertiempos');
-  };
+  
 
   return (
     <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
@@ -76,4 +70,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EscanerCX;
+export default EscanerURG;

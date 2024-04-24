@@ -4,8 +4,8 @@ import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleS
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebase } from '@react-native-firebase/auth';
 
-const backgroundImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logo_2.png');
+const backgroundImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logo_2.png');
 
 function Login({ navigation }) {
   const [email, setEmail] = useState('');

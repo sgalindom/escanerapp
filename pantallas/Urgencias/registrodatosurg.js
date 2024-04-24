@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useBarcode } from './BarcodeContext';
+import { useBarcode } from '../BarcodeContext';
 import firestore from '@react-native-firebase/firestore';
 
-const fondoEscanerImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logorectangular.png');
+const fondoEscanerImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logorectangular.png');
 
-const RegistroDatosCX = ({ route }) => {
+const RegistroDatosURG = ({ route }) => {
     const { barcode } = useBarcode();
     const [selectedArea, setSelectedArea] = useState(null);
     const [selectedProcedure, setSelectedProcedure] = useState(null);
@@ -328,4 +328,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default RegistroDatosCX;
+export default RegistroDatosURG;
