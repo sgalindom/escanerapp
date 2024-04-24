@@ -44,8 +44,8 @@ const Vertiempos = () => {
       <View style={styles.container}>
         <Image source={logoImage} style={styles.logo} />
         <Text style={styles.label}>Seleccione una fecha:</Text>
-        <TouchableOpacity style={styles.button} onPress={() => handleDatePress('2024-04-17')}>
-          <Text style={styles.buttonText}>17 de abril de 2024</Text>
+        <TouchableOpacity style={styles.button} onPress={() => handleDatePress('2024-04-24')}>
+          <Text style={styles.buttonText}>24 de abril de 2024</Text>
         </TouchableOpacity>
         {/* Agrega más botones para otras fechas si es necesario */}
         
@@ -53,10 +53,14 @@ const Vertiempos = () => {
           <View key={sala}>
             <Text style={styles.subtitle}>{sala}</Text>
             {tiemposSala.map((tiempo, index) => (
-              <Text key={index} style={styles.tiempoText}>
+              <Text key={index} style={styles.tiempoText}>  
                 {`${index + 1}: ${tiempo} minutos`}
               </Text>
             ))}
+            {/* Calcula el tiempo libre total para la sala */}
+            <Text style={styles.totalText}>
+              Tiempo libre total: {tiemposSala.reduce((acc, curr) => acc + curr, 0)} minutos
+            </Text>
           </View>
         ))}
       </View>
@@ -108,6 +112,11 @@ const styles = StyleSheet.create({
   tiempoText: {
     fontSize: 14,
     marginBottom: 5,
+    color: 'white', // Cambio de color de texto
+  },
+  totalText: {
+    fontSize: 14,
+    fontWeight: 'bold',
     color: 'white', // Cambio de color de texto
   },
 });

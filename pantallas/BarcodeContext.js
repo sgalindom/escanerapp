@@ -6,7 +6,9 @@ export const BarcodeProvider = ({ children }) => {
   const [barcode, setBarcode] = useState('');
 
   return (
+    //componente hijo de barcode
     <BarcodeContext.Provider value={{ barcode, setBarcode }}>
+      
       {children}
     </BarcodeContext.Provider>
   );

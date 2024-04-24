@@ -1,92 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ImageBackground, Image } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+// Admin.js
+import React from 'react';
+import { View, TouchableOpacity, Text, ImageBackground, Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const fondoEscanerImage = require('./imagenes/Login.jpg');
 const logoImage = require('./imagenes/logorectangular.png');
 
-const Admin = () => {
-  const [folios, setFolios] = useState([]);
+function Admin() {
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchFolios = async () => {
-      try {
-        const foliosSnapshot = await firestore()
-          .collection('Foliosescaneados')
-          .get();
+  const handleCerrarSesion = async () => {
+    try {
+      // Eliminar el token de sesión de AsyncStorage
+      await AsyncStorage.removeItem('userToken');
+      // Navegar a la pantalla de inicio de sesión
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      // Manejar el error si es necesario
+    }
+  };
 
-        const foliosData = foliosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setFolios(foliosData);
-      } catch (error) {
-        console.error('Error al obtener los folios:', error);
-      }
-    };
-
-    fetchFolios();
-  }, []);
+  const handleVerTiempos = () => {
+    // Navegar a la pantalla de ver tiempos
+    navigation.navigate('vertiempos');
+  };
 
   return (
     <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
       <View style={styles.container}>
-        <Image source={logoImage} style={styles.logo} />
-        <Text style={[styles.heading, { color: 'black' }]}>Panel de Administración</Text>
-        <Text style={[styles.subheading, { color: 'black' }]}>Folios Escaneados:</Text>
-        <FlatList
-          data={folios}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardText}>{`ID: ${item.id}`}</Text>
-              <Text style={styles.cardText}>{`Fecha de Escaneo: ${item.scanDateTime}`}</Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.id}
-        />
+        <View style={styles.logoContainer}>
+          <Image source={logoImage} style={styles.logo} />
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={handleVerTiempos} style={styles.button}>
+            <Text style={styles.buttonText}>Ver Tiempos de recambio</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.logoutContainer}>
+          <TouchableOpacity onPress={handleCerrarSesion} style={styles.logoutButton}>
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ImageBackground>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
   backgroundImage: {
     flex: 1,
-    width: '100%',
-    height: '100%',
     resizeMode: 'cover',
   },
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+  logoContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
   logo: {
-    width: 200,
-    height: 80,
+    width: 300,
+    height: 100,
     resizeMode: 'contain',
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  button: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 30,
+    paddingVertical: 20,
+    borderRadius: 50,
     marginBottom: 20,
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  subheading: {
+  buttonText: {
+    color: '#2F9FFA',
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 10,
-    width: '80%',
-    alignSelf: 'center',
+  logoutContainer: {
+    position: 'absolute',
+    bottom: 20,
+    width: '100%',
+    alignItems: 'center',
   },
-  cardText: {
+  logoutButton: {
+    backgroundColor: 'red',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    color: 'black',
-    marginBottom: 10,
+    fontWeight: 'bold',
   },
 });
 

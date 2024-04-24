@@ -1,4 +1,4 @@
-// DataContext.js
+
 import React, { createContext, useContext, useState } from 'react';
 
 const DataContext = createContext();
@@ -11,6 +11,7 @@ export const DataProvider = ({ children }) => {
   };
 
   return (
+    // DataContext.js componente hijo 
     <DataContext.Provider value={{ data, updateData }}>
       {children}
     </DataContext.Provider>

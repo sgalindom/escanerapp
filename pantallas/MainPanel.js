@@ -14,7 +14,7 @@ function MainPanel() {
   };
 
   const handleNavigateToUrgencias = () => {
-    navigation.navigate('proximamente');
+    navigation.navigate('escanerurg');
   };
 
   const handleLogout = async () => {

@@ -74,7 +74,7 @@ const Recambio = () => {
         [
           {
             text: 'Aceptar',
-            onPress: () => navigation.goBack(),
+            onPress: () => navigation.navigate('EscanerCX'), // Navega a EscanerCX.js
           },
         ],
         { cancelable: false }

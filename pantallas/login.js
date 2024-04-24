@@ -1,3 +1,4 @@
+// Login.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,7 +20,17 @@ function Login({ navigation }) {
   const checkUserLoggedIn = async () => {
     const userToken = await AsyncStorage.getItem('userToken');
     if (userToken) {
-      navigation.replace('MainPanel');
+      // Si el usuario tiene un token de sesión guardado
+      // Consultar el rol del usuario o cualquier otra información necesaria para determinar si es administrador
+      const isAdmin = false; // Aquí debes implementar la lógica para determinar si el usuario es administrador
+
+      if (isAdmin) {
+        // Si el usuario es administrador, navegar al panel de administrador
+        navigation.replace('paneladmin');
+      } else {
+        // Si no es administrador, navegar al panel principal
+        navigation.replace('MainPanel');
+      }
     }
   };
 
@@ -33,7 +44,7 @@ function Login({ navigation }) {
         console.log('Inicio de sesión exitoso');
         await AsyncStorage.setItem('userToken', response.user.uid);
         if (email === 'admin@gmail.com') {
-          navigation.replace('paneladmin');
+          navigation.replace('paneladmin'); // Redireccionar al panel de administrador
         } else {
           navigation.replace('MainPanel');
         }

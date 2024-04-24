@@ -20,6 +20,14 @@ import Vertiempos from './pantallas/vertiempos';
 import Proximamente from './pantallas/proximamente';
 
 
+
+
+import EscanerURG from './pantallas/escanerurg';
+import Registrourg from './pantallas/registrourg';
+import registrodatosurg from './pantallas/registrodatosurg';
+import RegistroDatosURG from './pantallas/registrodatosurg';
+
+
 const Stack = createStackNavigator();
 
 function App() {
@@ -39,6 +47,12 @@ function App() {
             <Stack.Screen name="proximamente" component={Proximamente} />
 
             <Stack.Screen name="paneladmin" component={Admin} />
+
+
+
+            <Stack.Screen name="escanerurg" component={EscanerURG} />
+            <Stack.Screen name="registrourg" component={Registrourg} />
+            <Stack.Screen name="registrodatosurg" component={RegistroDatosURG} />
 
           </Stack.Navigator>
         </NavigationContainer>
