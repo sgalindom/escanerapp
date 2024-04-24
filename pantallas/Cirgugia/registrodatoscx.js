@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBarcode } from '../BarcodeContext';
 import firestore from '@react-native-firebase/firestore';
 
@@ -108,7 +108,7 @@ const RegistroDatosCX = ({ route }) => {
                 });
 
                 if (selectedProcedure === 'Entrada CX' || selectedProcedure === 'Salida CX') {
-                    navigation.navigate('recambio'); 
+                    navigation.navigate('recambio', { selectedProcedure, selectedArea }); 
                 } else {
                     handleNavigateToDescription(); 
                 }

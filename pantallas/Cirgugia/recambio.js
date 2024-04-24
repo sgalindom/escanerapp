@@ -6,7 +6,7 @@ import firestore from '@react-native-firebase/firestore';
 const fondoEscanerImage = require('../imagenes/Login.jpg');
 const logoImage = require('../imagenes/logorectangular.png');
 
-const Recambio = () => {
+const Recambio = ({ route }) => {
   const navigation = useNavigation();
   const [selectedSala, setSelectedSala] = useState('');
   const [selectedInOut, setSelectedInOut] = useState('');
@@ -37,7 +37,7 @@ const Recambio = () => {
 
   const handleRegister = async () => {
     if (!selectedSala || !selectedInOut || !motivo) {
-      alert('Por favor complete todos los campos.');
+      Alert.alert('Por favor complete todos los campos.');
       return;
     }
 
@@ -81,7 +81,7 @@ const Recambio = () => {
       );
     } catch (error) {
       console.error('Error al registrar el recambio de sala:', error);
-      alert('Hubo un error al registrar el recambio de sala. Por favor, inténtelo de nuevo.');
+      Alert.alert('Hubo un error al registrar el recambio de sala. Por favor, inténtelo de nuevo.');
     }
   };
 
@@ -126,7 +126,7 @@ const Recambio = () => {
         <Image source={logoImage} style={styles.logo} />
 
         <View style={styles.formContainer}>
-          <Text style={styles.label}>Seleccione Sala:</Text>
+          <Text style={styles.label}>Seleccione la Sala de cirugia:</Text>
           <View style={styles.buttonGroup}>
             <TouchableOpacity
               style={[styles.button, selectedSala === 'Salacx1' && styles.selectedButton]}
@@ -158,11 +158,11 @@ const Recambio = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>Motivo:</Text>
+          <Text style={styles.label}>Descripcion procedimiento:</Text>
           <TextInput
             style={styles.input}
             multiline
-            placeholder="Ingrese el motivo"
+            placeholder="Ingrese la descripcion"
             value={motivo}
             onChangeText={setMotivo}
           />
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   selectedButton: {
-    backgroundColor: '#0F69FF',
+    backgroundColor: '#FF5722',
   },
   buttonText: {
     color: 'white',
@@ -228,12 +228,12 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    borderWidth: 1,
+    height: 100,
     borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 5,
-    padding: 10,
+    paddingHorizontal: 10,
     marginBottom: 20,
-    minHeight: 100,
   },
   registerButton: {
     backgroundColor: '#2F9FFA',
