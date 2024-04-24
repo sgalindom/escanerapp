@@ -25,7 +25,7 @@ function EscanerURG() {
 
         
         <TouchableOpacity onPress={handleScan} style={styles.button}>
-          <Text style={styles.buttonText}>Escanear Tiempo</Text>
+          <Text style={styles.buttonText}>Escanear Tiempo de urgencia</Text>
         </TouchableOpacity>
 
       
