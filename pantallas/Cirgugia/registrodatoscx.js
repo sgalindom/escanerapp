@@ -104,7 +104,7 @@ const RegistroDatosCX = ({ route }) => {
                     selectedArea: selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
-                    patientId: patientId.toString(), 
+                    patientId: patientId !== null ? patientId.toString() : '', 
                 });
 
                 if (selectedProcedure === 'Entrada CX' || selectedProcedure === 'Salida CX') {

@@ -13,9 +13,11 @@ const RegistroDatosURG = ({ route }) => {
     const [selectedProcedure, setSelectedProcedure] = useState(null);
     const [areas, setAreas] = useState([]);
     const [procedureTimes, setProcedureTimes] = useState({
-        'Entrada Transfer': null,
-        'Entrada CX': null,
-        'Salida CX': null,
+        'Entrada': null,
+        'Registro': null,
+        'Trauma2': null,
+        'Triage': null,
+        'Triage': null,
     });
     const [finalizationEnabled, setFinalizationEnabled] = useState(false);
     const [scanDate, setScanDate] = useState('');
@@ -38,12 +40,30 @@ const RegistroDatosURG = ({ route }) => {
     }, [route.params]);
 
     const updateAreas = (procedure) => {
-        if (procedure === 'Entrada Transfer') {
+        if (procedure === 'Entrada') {
+            setAreas(['Entrada Principal',]);
+
+
+        } else if (procedure === 'Triage 1' || procedure === 'Triage 2') {
             setAreas(['Silla 1', 'Silla 2']);
-        } else if (procedure === 'Entrada CX' || procedure === 'Salida CX') {
-            setAreas(['Sala de CX 1', 'Sala de CX 2']);
-        } else if (procedure === 'Finalización') {
+
+        } else if (procedure === 'Registro') {
+            setAreas(['Soat', 'Arl']);
+
+        } else if (procedure === 'Triage') {
             setAreas(['Hospitalización', 'Salida']);
+
+        } else if (procedure === 'Trauma 2') {
+            setAreas(['Silla 1', 'Silla 2']);
+
+        } else if (procedure === 'Consultorio') {
+            setAreas(['Consultorio 1', 'Consultorio 2']);
+
+        } else if (procedure === 'Salida') {
+            setAreas(['Finalizacion',]);
+
+
+
         } else {
             setAreas([]);
         }
@@ -51,7 +71,7 @@ const RegistroDatosURG = ({ route }) => {
 
     const generatePatientId = async (barcodeValue) => {
         try {
-            const folioRef = firestore().collection('Foliosescaneados').doc(barcodeValue);
+            const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcodeValue);
             const lastPatientSnapshot = await folioRef.collection('Procedimientosregistrados').orderBy('createdAt', 'desc').limit(1).get();
             let lastPatientNumber = 0;
             
@@ -89,7 +109,7 @@ const RegistroDatosURG = ({ route }) => {
             setScanDate(formattedDate);
             setScanTime(formattedTime);
 
-            const folioRef = firestore().collection('Foliosescaneados').doc(barcode);
+            const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcode);
             const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
 
             if (documentSnapshot.exists) {
@@ -130,7 +150,7 @@ const RegistroDatosURG = ({ route }) => {
 
     const handleNavigateToDescription = async () => {
         try {
-            const snapshot = await firestore().collection('Foliosescaneados').doc(barcode).collection('Procedimientosregistrados').get();
+            const snapshot = await firestore().collection('Foliosescaneadosurg').doc(barcode).collection('Procedimientosregistrados').get();
             const dataList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             navigation.navigate('descripcionetapas', { data: dataList });
         } catch (error) {
@@ -167,7 +187,7 @@ const RegistroDatosURG = ({ route }) => {
                 <View style={styles.dropdown}>
                     <Text style={styles.dropdownTitle}>Selecciona un Procedimiento</Text>
                     <ScrollView style={styles.dropdownOptions}>
-                        {renderOptions(['Entrada Transfer', 'Entrada CX', 'Salida CX', 'Finalización'], setSelectedProcedure, selectedProcedure)}
+                        {renderOptions(['Entrada', 'Registro', 'Triage', 'Trauma 2', 'Consultorio', 'Salida'], setSelectedProcedure, selectedProcedure)}
                     </ScrollView>
                 </View>
 

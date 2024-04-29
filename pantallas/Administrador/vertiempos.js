@@ -6,9 +6,25 @@ const fondoEscanerImage = require('../imagenes/Login.jpg');
 const logoImage = require('../imagenes/logorectangular.png');
 
 const Vertiempos = () => {
-  const [selectedDate, setSelectedDate] = useState('');
-  const [tiempos, setTiempos] = useState({});
+  const [fechas, setFechas] = useState([]); // Estado para almacenar las fechas disponibles
+  const [selectedDate, setSelectedDate] = useState(''); // Estado para la fecha seleccionada
+  const [tiempos, setTiempos] = useState({}); // Estado para los tiempos de la fecha seleccionada
   const [isVisible, setIsVisible] = useState(false); // Estado para controlar la visibilidad de la información
+
+  useEffect(() => {
+    const fetchFechas = async () => {
+      try {
+        const fechasRef = firestore().collection('TiemposLibres');
+        const snapshot = await fechasRef.get();
+        const fechasArray = snapshot.docs.map(doc => doc.id);
+        setFechas(fechasArray);
+      } catch (error) {
+        console.error('Error fetching fechas:', error);
+      }
+    };
+
+    fetchFechas();
+  }, []);
 
   useEffect(() => {
     const fetchTiempos = async () => {
@@ -44,10 +60,12 @@ const Vertiempos = () => {
       <View style={styles.container}>
         <Image source={logoImage} style={styles.logo} />
         <Text style={styles.label}>Seleccione una fecha:</Text>
-        <TouchableOpacity style={styles.button} onPress={() => handleDatePress('2024-04-24')}>
-          <Text style={styles.buttonText}>24 de abril de 2024</Text>
-        </TouchableOpacity>
-        {/* Agrega más botones para otras fechas si es necesario */}
+        {/* Renderizar botones para cada fecha disponible */}
+        {fechas.map(date => (
+          <TouchableOpacity key={date} style={styles.button} onPress={() => handleDatePress(date)}>
+            <Text style={styles.buttonText}>{date}</Text>
+          </TouchableOpacity>
+        ))}
         
         {isVisible && Object.entries(tiempos).map(([sala, tiemposSala]) => (
           <View key={sala}>
@@ -57,7 +75,6 @@ const Vertiempos = () => {
                 {`${index + 1}: ${tiempo} minutos`}
               </Text>
             ))}
-            {/* Calcula el tiempo libre total para la sala */}
             <Text style={styles.totalText}>
               Tiempo libre total: {tiemposSala.reduce((acc, curr) => acc + curr, 0)} minutos
             </Text>
@@ -89,7 +106,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: 'white', // Cambio de color de texto
+    color: 'white',
   },
   button: {
     backgroundColor: '#2F9FFA',
@@ -107,17 +124,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
-    color: 'white', // Cambio de color de texto
+    color: 'white',
   },
   tiempoText: {
     fontSize: 14,
     marginBottom: 5,
-    color: 'white', // Cambio de color de texto
+    color: 'white',
   },
   totalText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: 'white', // Cambio de color de texto
+    color: 'white',
   },
 });
 

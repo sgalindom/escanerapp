@@ -13,22 +13,21 @@ const DescripcionEtapas = () => {
     const [totalScanTime, setTotalScanTime] = useState(null); 
 
     useEffect(() => {
-        setLoading(false);
-        calculateTotalScanTime();
-    }, []);
+        if (data) {
+            setLoading(false);
+            calculateTotalScanTime();
+        }
+    }, [data]);
 
     const calculateTimeDifference = (start, end) => {
         if (!start || !end) return null;
     
-        // Extraer horas y minutos de la cadena de tiempo
         const [startHours, startMinutes] = start.split(':').map(Number);
         const [endHours, endMinutes] = end.split(':').map(Number);
     
-        // Convertir las horas a minutos totales
         const startTimeInMinutes = startHours * 60 + startMinutes;
         const endTimeInMinutes = endHours * 60 + endMinutes;
     
-        // Calcular la diferencia en minutos
         let differenceInMinutes = endTimeInMinutes - startTimeInMinutes;
     
         return differenceInMinutes;
@@ -91,7 +90,7 @@ const DescripcionEtapas = () => {
                                 <Text style={styles.scanNewButtonText}>Escanear Nuevo Tiempo</Text>
                             </TouchableOpacity>
                         </>
-                    )}
+                    )}  
                 </View>
             </ScrollView>
         </ImageBackground>
@@ -149,7 +148,8 @@ const styles = StyleSheet.create({
     },
     scanNewButton: {
         backgroundColor: '#2F9FFA',
-        paddingHorizontal: 20,
+        paddingHorizontal:
+ 20,
         paddingVertical: 10,
         borderRadius: 5,
         elevation: 5,
