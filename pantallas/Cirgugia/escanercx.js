@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, ImageBackground, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text, ImageBackground, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
@@ -7,18 +7,21 @@ const logoImage = require('../imagenes/logorectangular.png');
 
 function EscanerCX() {
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleScan = () => {
-    navigation.navigate('Registrocx');
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigation.navigate('Registrocx');
+    }, 2000); // Simulando un escaneo que toma 2 segundos
   };
 
   const handleRecambioSala = () => {
-    // Navegar a la pantalla de recambio de sala
     navigation.navigate('recambio');
   };
 
   const handleVerTiempos = () => {
-    // vanegar a la pantalla de ver tiempos
     navigation.navigate('vertiempos');
   };
 
@@ -29,14 +32,16 @@ function EscanerCX() {
           <Image source={logoImage} style={styles.logo} />
         </View>
 
-        
         <TouchableOpacity onPress={handleScan} style={styles.button}>
           <Text style={styles.buttonText}>Escanear Tiempo</Text>
         </TouchableOpacity>
 
-      
-
-    
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.loadingText}>Cargando...</Text>
+          </View>
+        )}
       </View>
     </ImageBackground>
   );
@@ -52,7 +57,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 50, 
+    paddingTop: 50,
   },
   logoContainer: {
     marginBottom: 20,
@@ -73,6 +78,17 @@ const styles = StyleSheet.create({
     color: '#2F9FFA',
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginTop: 10,
   },
 });
 

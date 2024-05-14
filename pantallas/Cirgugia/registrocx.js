@@ -1,22 +1,20 @@
-// Registrocx.js
 import React, { useRef, useState, useEffect } from 'react';
-import { StyleSheet, View, StatusBar, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, StatusBar, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from '../BarcodeContext'; 
 import firestore from '@react-native-firebase/firestore';
 
-
 const Registrocx = () => {
   const [scannedData, setScannedData] = useState(null);
   const [scanDateTime, setScanDateTime] = useState(null); 
-  const [patientCounter, setPatientCounter] = useState(0); // Nuevo estado para el contador de pacientes
+  const [patientCounter, setPatientCounter] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
   const navigation = useNavigation();
   const { setBarcode } = useBarcode(); 
 
   useEffect(() => {
-    // Generar el paciente ID basado en el folio escaneado
     if (scannedData) {
       generatePatientId(scannedData);
     }
@@ -34,7 +32,7 @@ const Registrocx = () => {
 
   const generatePatientId = async (barcodeValue) => {
     try {
-      // Consultar el último paciente registrado para este folio
+      setIsLoading(true);
       const lastPatientSnapshot = await firestore().collection('Foliosescaneados').doc(barcodeValue).collection('Procedimientosregistrados').orderBy('createdAt', 'desc').limit(1).get();
       let lastPatientNumber = 0;
       if (!lastPatientSnapshot.empty) {
@@ -43,13 +41,15 @@ const Registrocx = () => {
       }
       const nextPatientNumber = lastPatientNumber + 1;
       setPatientCounter(nextPatientNumber);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error al generar el ID del paciente:', error);
+      setIsLoading(false);
     }
   };
 
   const handleRegister = () => {
-    navigation.navigate('registrodatoscx', { scanDateTime: scanDateTime, patientCounter: patientCounter }); // Pasar patientCounter como una prop
+    navigation.navigate('registrodatoscx', { scanDateTime: scanDateTime, patientCounter: patientCounter });
   };
 
   const handleScanAgain = () => {
@@ -75,7 +75,7 @@ const Registrocx = () => {
           <View style={styles.overlay}>
             <Text style={styles.text}>Código QR: {scannedData}</Text>
             <Text style={styles.text}>Hora del escaneo: {scanDateTime}</Text>
-            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+            <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={isLoading}>
               <Text style={styles.registerButtonText}>Registrar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.scanAgainButton} onPress={handleScanAgain}>
@@ -84,6 +84,12 @@ const Registrocx = () => {
           </View>
         )}
       </View>
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2F9FFA" />
+          <Text style={styles.loadingText}>Cargando...</Text>
+        </View>
+      )}
     </View>
   );
 };  
@@ -139,7 +145,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginTop: 10,
+  },
 });
 
 export default Registrocx;
-

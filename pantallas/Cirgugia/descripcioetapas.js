@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ImageBackground, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ImageBackground, Image, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
@@ -11,10 +11,12 @@ const DescripcionEtapas = () => {
     const { data } = route.params;
     const [loading, setLoading] = useState(true);
     const [totalScanTime, setTotalScanTime] = useState(null); 
+    const [isLoadingNewTime, setIsLoadingNewTime] = useState(false);
+
 
     useEffect(() => {
         if (data) {
-            setLoading(false);
+            setLoading(false);WWWW
             calculateTotalScanTime();
         }
     }, [data]);
@@ -65,7 +67,11 @@ const DescripcionEtapas = () => {
     };
 
     const handleScanNewTime = () => {
-        navigation.navigate('EscanerCX');
+        setIsLoadingNewTime(true); // Activar el indicador de carga
+        setTimeout(() => {
+            setIsLoadingNewTime(false); // Desactivar el indicador de carga después de 2 segundos (simulación)
+            navigation.navigate('EscanerCX');
+        }, 2000); // Simulando un escaneo que toma 2 segundos
     };
 
     return (
@@ -86,8 +92,16 @@ const DescripcionEtapas = () => {
                                 </Text>
                             )}
                             {renderCards()}
-                            <TouchableOpacity style={styles.scanNewButton} onPress={handleScanNewTime}>
-                                <Text style={styles.scanNewButtonText}>Escanear Nuevo Tiempo</Text>
+                            <TouchableOpacity
+                                style={styles.scanNewButton}
+                                onPress={handleScanNewTime}
+                                disabled={isLoadingNewTime} // Deshabilitar el botón si está cargando
+                            >
+                                {isLoadingNewTime ? ( // Mostrar el indicador de carga si está cargando
+                                    <ActivityIndicator size="small" color="white" />
+                                ) : (
+                                    <Text style={styles.scanNewButtonText}>Escanear Nuevo Tiempo</Text>
+                                )}
                             </TouchableOpacity>
                         </>
                     )}  
@@ -148,8 +162,7 @@ const styles = StyleSheet.create({
     },
     scanNewButton: {
         backgroundColor: '#2F9FFA',
-        paddingHorizontal:
- 20,
+        paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 5,
         elevation: 5,

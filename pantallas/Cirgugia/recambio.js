@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 
@@ -12,6 +12,7 @@ const Recambio = ({ route }) => {
   const [selectedInOut, setSelectedInOut] = useState('');
   const [motivo, setMotivo] = useState('');
   const [lastId, setLastId] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchLastId = async () => {
@@ -42,6 +43,7 @@ const Recambio = ({ route }) => {
     }
 
     try {
+      setIsLoading(true);
       const currentDate = new Date();
       const formattedDate = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`;
       const formattedTime = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
@@ -54,7 +56,6 @@ const Recambio = ({ route }) => {
         motivo: motivo,
       });
 
-      // Actualizar contador de la sala
       const counterRef = firestore().collection('Counters').doc(`${selectedSala}${selectedInOut}`);
       const counterSnapshot = await counterRef.get();
       if (counterSnapshot.exists) {
@@ -63,23 +64,24 @@ const Recambio = ({ route }) => {
         await counterRef.set({ count: newId });
       }
 
-      // Calcular y almacenar el tiempo libre
       if (selectedInOut === 'salida') {
         await calcularYAlmacenarTiempoLibre(selectedSala, formattedDate, formattedTime, newId);
       }
 
+      setIsLoading(false);
       Alert.alert(
         'Registro exitoso',
         'El recambio de sala se ha registrado correctamente.',
         [
           {
             text: 'Aceptar',
-            onPress: () => navigation.navigate('EscanerCX'), // Navega a EscanerCX.js
+            onPress: () => navigation.navigate('EscanerCX'),
           },
         ],
         { cancelable: false }
       );
     } catch (error) {
+      setIsLoading(false);
       console.error('Error al registrar el recambio de sala:', error);
       Alert.alert('Hubo un error al registrar el recambio de sala. Por favor, inténtelo de nuevo.');
     }
@@ -87,24 +89,20 @@ const Recambio = ({ route }) => {
 
   const calcularYAlmacenarTiempoLibre = async (sala, fecha, hora, id) => {
     try {
-      // Obtener la última entrada de la sala para el día actual
       const entradaRef = firestore().collection('Recambio').doc(sala).collection('entrada');
       const entradaSnapshot = await entradaRef.where('fecha', '==', fecha).orderBy('hora', 'asc').get();
       const entradas = entradaSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
 
-      // Obtener las salidas correspondientes a las entradas
       const salidaRef = firestore().collection('Recambio').doc(sala).collection('salida');
       const salidasSnapshot = await salidaRef.where('fecha', '==', fecha).orderBy('hora', 'asc').get();
       const salidas = salidasSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
 
-      // Calcular los tiempos libres
       const tiemposLibres = [];
       for (let i = 0; i < entradas.length - 1; i++) {
         const tiempoLibre = Math.round((new Date(`${fecha} ${salidas[i].data.hora}`) - new Date(`${fecha} ${entradas[i + 1].data.hora}`)) / (1000 * 60));
         tiemposLibres.push(tiempoLibre);
       }
 
-      // Actualizar o crear el documento de tiempos libres en Firestore
       const tiemposLibresRef = firestore().collection('TiemposLibres').doc(fecha);
       const tiemposLibresSnapshot = await tiemposLibresRef.get();
       if (tiemposLibresSnapshot.exists) {
@@ -167,11 +165,17 @@ const Recambio = ({ route }) => {
             onChangeText={setMotivo}
           />
 
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={isLoading}>
             <Text style={styles.registerButtonText}>Registrar</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
     </ImageBackground>
   );
 };
@@ -245,6 +249,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 });
 

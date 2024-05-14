@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBarcode } from '../BarcodeContext';
 import firestore from '@react-native-firebase/firestore';
+import firebase from '@react-native-firebase/auth'; // Importa firebase.auth para obtener el usuario autenticado
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
 const logoImage = require('../imagenes/logorectangular.png');
+const loadingImage = require('../imagenes/Loading.jpg');
 
 const RegistroDatosCX = ({ route }) => {
     const { barcode } = useBarcode();
@@ -21,6 +23,7 @@ const RegistroDatosCX = ({ route }) => {
     const [scanDate, setScanDate] = useState('');
     const [scanTime, setScanTime] = useState('');
     const [patientId, setPatientId] = useState(null); 
+    const [isLoading, setIsLoading] = useState(false);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -69,6 +72,8 @@ const RegistroDatosCX = ({ route }) => {
 
     const handleRegister = async () => {
         try {
+            setIsLoading(true);
+
             if (!selectedArea || !selectedProcedure) {
                 Alert.alert(
                     'Campos obligatorios',
@@ -76,6 +81,7 @@ const RegistroDatosCX = ({ route }) => {
                     [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
                     { cancelable: false }
                 );
+                setIsLoading(false);
                 return;
             }
 
@@ -89,6 +95,10 @@ const RegistroDatosCX = ({ route }) => {
             setScanDate(formattedDate);
             setScanTime(formattedTime);
 
+            // Obtener el correo electrónico del usuario actualmente autenticado
+            const currentUser = firebase.auth().currentUser;
+            const userEmail = currentUser.email;
+
             const folioRef = firestore().collection('Foliosescaneados').doc(barcode);
             const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
 
@@ -99,12 +109,15 @@ const RegistroDatosCX = ({ route }) => {
                     [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
                     { cancelable: false }
                 );
+                setIsLoading(false);
             } else {
                 await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
                     selectedArea: selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
                     patientId: patientId !== null ? patientId.toString() : '', 
+                    // Agregar el correo electrónico del usuario al documento
+                    userEmail: userEmail,
                 });
 
                 if (selectedProcedure === 'Entrada CX' || selectedProcedure === 'Salida CX') {
@@ -125,6 +138,7 @@ const RegistroDatosCX = ({ route }) => {
             }
         } catch (error) {
             console.error('Error al registrar información:', error);
+            setIsLoading(false);
         }
     };
 
@@ -135,6 +149,7 @@ const RegistroDatosCX = ({ route }) => {
             navigation.navigate('descripcionetapas', { data: dataList });
         } catch (error) {
             console.error('Error al obtener la información:', error);
+            setIsLoading(false);
         }
     };
 
@@ -194,6 +209,13 @@ const RegistroDatosCX = ({ route }) => {
                     <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
                 </TouchableOpacity>
             </View>
+
+            {isLoading && (
+                <View style={styles.loadingContainer}>
+                    <Image source={loadingImage} style={styles.loadingImage} />
+                    <Text style={styles.loadingText}>Cargando...</Text>
+                </View>
+            )}
         </ImageBackground>
     );
 };
@@ -325,6 +347,26 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.75)',
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
+    },
+    loadingContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingImage: {
+        width: 50,
+        height: 50,
+        marginBottom: 20,
+    },
+    loadingText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
     },
 });
 
