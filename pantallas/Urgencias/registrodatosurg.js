@@ -13,16 +13,13 @@ const RegistroDatosURG = ({ route }) => {
     const [selectedProcedure, setSelectedProcedure] = useState(null);
     const [areas, setAreas] = useState([]);
     const [procedureTimes, setProcedureTimes] = useState({
-        'Entrada': null,
         'Registro': null,
         'Trauma2': null,
-        'Triage': null,
         'Triage': null,
     });
     const [finalizationEnabled, setFinalizationEnabled] = useState(false);
     const [scanDate, setScanDate] = useState('');
     const [scanTime, setScanTime] = useState('');
-    const [patientId, setPatientId] = useState(null); 
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -36,56 +33,43 @@ const RegistroDatosURG = ({ route }) => {
             setScanTime(time);
         }
 
-        generatePatientId(barcode); 
+        // generatePatientId(barcode); Remove patient ID generation
     }, [route.params]);
 
     const updateAreas = (procedure) => {
-        if (procedure === 'Entrada') {
-            setAreas(['Entrada Principal',]);
+        let newAreas = [];
 
-
-        } else if (procedure === 'Triage 1' || procedure === 'Triage 2') {
-            setAreas(['Silla 1', 'Silla 2']);
-
-        } else if (procedure === 'Registro') {
-            setAreas(['Soat', 'Arl']);
-
-        } else if (procedure === 'Triage') {
-            setAreas(['Hospitalización', 'Salida']);
-
-        } else if (procedure === 'Trauma 2') {
-            setAreas(['Silla 1', 'Silla 2']);
-
-        } else if (procedure === 'Consultorio') {
-            setAreas(['Consultorio 1', 'Consultorio 2']);
-
-        } else if (procedure === 'Salida') {
-            setAreas(['Finalizacion',]);
-
-
-
-        } else {
-            setAreas([]);
+        switch (procedure) {
+            case 'Triage 1':
+            case 'Triage 2':
+                newAreas = ['Silla 1', 'Silla 2'];
+                break;
+            case 'Registro':
+                newAreas = ['Soat', 'Autorizacion Codigo'];
+                break;
+            case 'Triage':
+                newAreas = ['Triage 1', 'Triage 2', 'Triage 3', 'Triage 4', 'Triage 5'];
+                break;
+            case 'Trauma 2':
+                newAreas = ['Silla 1', 'Silla 2'];
+                break;
+            case 'Consultorio':
+                newAreas = ['Consultorio 1', 'Consultorio 2'];
+                break;
+            case 'Rayos X':
+                newAreas = [];
+                break;
+            case 'Salida':
+                newAreas = ['Finalizacion'];
+                break;
+            default:
+                newAreas = [];
         }
+
+        setAreas(newAreas);
     };
 
-    const generatePatientId = async (barcodeValue) => {
-        try {
-            const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcodeValue);
-            const lastPatientSnapshot = await folioRef.collection('Procedimientosregistrados').orderBy('createdAt', 'desc').limit(1).get();
-            let lastPatientNumber = 0;
-            
-            if (!lastPatientSnapshot.empty) {
-                const lastPatientData = lastPatientSnapshot.docs[0].data();
-                lastPatientNumber = parseInt(lastPatientData.patientId) || 0; 
-            }
-            
-            const nextPatientNumber = lastPatientNumber + 1;
-            setPatientId(nextPatientNumber); 
-        } catch (error) {
-            console.error('Error al generar el ID del paciente:', error);
-        }
-    };
+    // Remove generatePatientId function
 
     const handleRegister = async () => {
         try {
@@ -99,6 +83,26 @@ const RegistroDatosURG = ({ route }) => {
                 return;
             }
 
+            if (selectedProcedure === 'Triage' && procedureTimes['Registro'] === null) {
+                Alert.alert(
+                    'Registro de Tiempo Faltante',
+                    'Aún no se ha registrado el tiempo de "Registro". ¿Deseas continuar de todas formas?',
+                    [
+                        { text: 'Sí', onPress: () => registerProcedure() },
+                        { text: 'No', style: 'cancel' }
+                    ],
+                    { cancelable: false }
+                );
+            } else {
+                registerProcedure();
+            }
+        } catch (error) {
+            console.error('Error al registrar información:', error);
+        }
+    };
+
+    const registerProcedure = async () => {
+        try {
             const currentDateTime = new Date();
             const currentHour = currentDateTime.getHours();
             const currentMinutes = currentDateTime.getMinutes();
@@ -124,10 +128,10 @@ const RegistroDatosURG = ({ route }) => {
                     selectedArea: selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
-                    patientId: patientId.toString(), 
+                    // Remove patientId field
                 });
 
-                if (selectedProcedure === 'Entrada CX' || selectedProcedure === 'Salida CX') {
+                if (selectedProcedure === 'Salida CX') {
                     navigation.navigate('recambio'); 
                 } else {
                     handleNavigateToDescription(); 
@@ -144,7 +148,7 @@ const RegistroDatosURG = ({ route }) => {
                 }
             }
         } catch (error) {
-            console.error('Error al registrar información:', error);
+            console.error('Error al registrar el procedimiento:', error);
         }
     };
 
@@ -187,7 +191,7 @@ const RegistroDatosURG = ({ route }) => {
                 <View style={styles.dropdown}>
                     <Text style={styles.dropdownTitle}>Selecciona un Procedimiento</Text>
                     <ScrollView style={styles.dropdownOptions}>
-                        {renderOptions(['Entrada', 'Registro', 'Triage', 'Trauma 2', 'Consultorio', 'Salida'], setSelectedProcedure, selectedProcedure)}
+                        {renderOptions(['Registro', 'Triage', 'Trauma 2', 'Consultorio', 'Salida', 'Rayos X'], setSelectedProcedure, selectedProcedure)}
                     </ScrollView>
                 </View>
 

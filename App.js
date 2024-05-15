@@ -26,6 +26,7 @@ import EscanerURG from './pantallas/Urgencias/escanerurg';
 import Registrourg from './pantallas/Urgencias/registrourg';
 
 import RegistroDatosURG from './pantallas/Urgencias/registrodatosurg';
+import DescripcionEtapasUrgencias from './pantallas/Urgencias/descripcionetapasurgencias';
 
 
 const Stack = createStackNavigator();
@@ -53,6 +54,10 @@ function App() {
             <Stack.Screen name="escanerurg" component={EscanerURG} />
             <Stack.Screen name="registrourg" component={Registrourg} />
             <Stack.Screen name="registrodatosurg" component={RegistroDatosURG} />
+            <Stack.Screen name="descripcionetapasurgencias" component={DescripcionEtapasUrgencias} />
+
+
+            
 
           </Stack.Navigator>
         </NavigationContainer>

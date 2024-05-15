@@ -5,7 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 const fondoEscanerImage = require('../imagenes/Login.jpg');
 const logoImage = require('../imagenes/logorectangular.png');
 
-const DescripcionEtapas = () => {
+const DescripcionEtapasUrgencias = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { data } = route.params;
@@ -70,8 +70,8 @@ const DescripcionEtapas = () => {
         setIsLoadingNewTime(true); // Activar el indicador de carga
         setTimeout(() => {
             setIsLoadingNewTime(false); // Desactivar el indicador de carga después de 2 segundos (simulación)
-            navigation.navigate('MainPanel');
-        }, 2000); // Simulando un escaneo que toma 2 segundos mientras el panel carga a la siguiente vista
+            navigation.navigate('EscanerURG');
+        }, 2000); // Simulando un escaneo que toma 2 segundos
     };
 
     return (
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default DescripcionEtapas;
+export default DescripcionEtapasUrgencias;
