@@ -26,7 +26,12 @@ import EscanerURG from './pantallas/Urgencias/escanerurg';
 import Registrourg from './pantallas/Urgencias/registrourg';
 
 import RegistroDatosURG from './pantallas/Urgencias/registrodatosurg';
-import DescripcionEtapasUrgencias from './pantallas/Urgencias/descripcionetapasurgencias';
+
+
+import TiemposUrgencias from './pantallas/Administrador/tiemposurgencias';
+
+
+
 
 
 const Stack = createStackNavigator();
@@ -37,24 +42,37 @@ function App() {
       <DataProvider>
         <NavigationContainer>
           <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+
+
+            
+            <Stack.Screen name="vertiempos" component={Vertiempos} />
+            <Stack.Screen name="proximamente" component={Proximamente} />
+            <Stack.Screen name="paneladmin" component={Admin} />
+
+           
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="MainPanel" component={MainPanel} />
+
+            
+
+          
             <Stack.Screen name="EscanerCX" component={EscanerCX} />
             <Stack.Screen name="Registrocx" component={Registrocx} />
             <Stack.Screen name="registrodatoscx" component={RegistroDatosCX} />
             <Stack.Screen name="descripcionetapas" component={Descripcion} />
             <Stack.Screen name="recambio" component={Recambio} />
-            <Stack.Screen name="vertiempos" component={Vertiempos} />
-            <Stack.Screen name="proximamente" component={Proximamente} />
-
-            <Stack.Screen name="paneladmin" component={Admin} />
 
 
+          
 
             <Stack.Screen name="escanerurg" component={EscanerURG} />
             <Stack.Screen name="registrourg" component={Registrourg} />
             <Stack.Screen name="registrodatosurg" component={RegistroDatosURG} />
-            <Stack.Screen name="descripcionetapasurgencias" component={DescripcionEtapasUrgencias} />
+            
+
+            <Stack.Screen name="tiemposurgencias" component={TiemposUrgencias} />
+
+            
 
 
             

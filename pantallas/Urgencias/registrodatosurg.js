@@ -3,6 +3,7 @@ import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, Scrol
 import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from '../BarcodeContext';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
 const logoImage = require('../imagenes/logorectangular.png');
@@ -12,12 +13,6 @@ const RegistroDatosURG = ({ route }) => {
     const [selectedArea, setSelectedArea] = useState(null);
     const [selectedProcedure, setSelectedProcedure] = useState(null);
     const [areas, setAreas] = useState([]);
-    const [procedureTimes, setProcedureTimes] = useState({
-        'Registro': null,
-        'Trauma2': null,
-        'Triage': null,
-    });
-    const [finalizationEnabled, setFinalizationEnabled] = useState(false);
     const [scanDate, setScanDate] = useState('');
     const [scanTime, setScanTime] = useState('');
     const navigation = useNavigation();
@@ -32,35 +27,56 @@ const RegistroDatosURG = ({ route }) => {
             setScanDate(date);
             setScanTime(time);
         }
-
-        // generatePatientId(barcode); Remove patient ID generation
     }, [route.params]);
 
     const updateAreas = (procedure) => {
         let newAreas = [];
 
         switch (procedure) {
-            case 'Triage 1':
-            case 'Triage 2':
-                newAreas = ['Silla 1', 'Silla 2'];
-                break;
-            case 'Registro':
-                newAreas = ['Soat', 'Autorizacion Codigo'];
+            case 'Ingreso':
+                newAreas = ['Soat', 'Arl', 'Poliza'];
                 break;
             case 'Triage':
-                newAreas = ['Triage 1', 'Triage 2', 'Triage 3', 'Triage 4', 'Triage 5'];
-                break;
-            case 'Trauma 2':
                 newAreas = ['Silla 1', 'Silla 2'];
                 break;
-            case 'Consultorio':
-                newAreas = ['Consultorio 1', 'Consultorio 2'];
+            case 'Atencion Medicina General':
+                newAreas = ['Area 1', 'Area 2'];
+                break;
+            case 'Admin Medicamentos':
+                newAreas = ['Sala 1', 'Sala 2', 'Sala 3'];
+                break;
+            case 'Procedimientos':
+                newAreas = ['Quirófano 1', 'Quirófano 2'];
+                break;
+            case 'Laboratorios':
+                newAreas = ['Análisis de Sangre', 'Análisis de Orina', 'Otros'];
                 break;
             case 'Rayos X':
-                newAreas = [];
+                newAreas = ['Miembro Superior', 'Miembro Inferior', 'Columna'];
+                break;
+            case 'Revaloración Medicina General':
+                newAreas = ['Consulta 1', 'Consulta 2'];
+                break;
+            case 'Atención Medicina especializada':
+                newAreas = ['Consulta Especializada 1', 'Consulta Especializada 2'];
+                break;
+            case 'Ordenes médicas Especializadas':
+                newAreas = ['Orden Especializada 1', 'Orden Especializada 2'];
                 break;
             case 'Salida':
-                newAreas = ['Finalizacion'];
+                newAreas = ['Finalización'];
+                break;
+            case 'Hospitalización':
+                newAreas = ['Habitación 1', 'Habitación 2'];
+                break;
+            case 'Cirugía':
+                newAreas = ['Sala de Operaciones 1', 'Sala de Operaciones 2'];
+                break;
+            case 'Remisión':
+                newAreas = ['Remisión 1', 'Remisión 2'];
+                break;
+            case 'Observación':
+                newAreas = ['Observación 1', 'Observación 2'];
                 break;
             default:
                 newAreas = [];
@@ -68,8 +84,6 @@ const RegistroDatosURG = ({ route }) => {
 
         setAreas(newAreas);
     };
-
-    // Remove generatePatientId function
 
     const handleRegister = async () => {
         try {
@@ -81,82 +95,83 @@ const RegistroDatosURG = ({ route }) => {
                     { cancelable: false }
                 );
                 return;
-            }
-
-            if (selectedProcedure === 'Triage' && procedureTimes['Registro'] === null) {
-                Alert.alert(
-                    'Registro de Tiempo Faltante',
-                    'Aún no se ha registrado el tiempo de "Registro". ¿Deseas continuar de todas formas?',
-                    [
-                        { text: 'Sí', onPress: () => registerProcedure() },
-                        { text: 'No', style: 'cancel' }
-                    ],
-                    { cancelable: false }
-                );
             } else {
-                registerProcedure();
+                await registerProcedure();
             }
         } catch (error) {
             console.error('Error al registrar información:', error);
         }
     };
 
-    const registerProcedure = async () => {
-        try {
-            const currentDateTime = new Date();
-            const currentHour = currentDateTime.getHours();
-            const currentMinutes = currentDateTime.getMinutes();
-            const currentSeconds = currentDateTime.getSeconds();
-            const formattedDate = `${currentDateTime.getFullYear()}-${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}-${currentDateTime.getDate().toString().padStart(2, '0')}`;
-            const formattedTime = `${currentHour.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
 
-            setScanDate(formattedDate);
-            setScanTime(formattedTime);
 
-            const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcode);
-            const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
+   const registerProcedure = async () => {
+    try {
+        const currentDateTime = new Date();
+        const formattedDate = `${currentDateTime.getFullYear()}-${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}-${currentDateTime.getDate().toString().padStart(2, '0')}`;
+        const formattedTime = `${currentDateTime.getHours().toString().padStart(2, '0')}:${currentDateTime.getMinutes().toString().padStart(2, '0')}`;
 
-            if (documentSnapshot.exists) {
-                Alert.alert(
-                    'Procedimiento ya registrado',
-                    'Este procedimiento ya ha sido registrado previamente para este folio escaneado.',
-                    [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-                    { cancelable: false }
-                );
+        setScanDate(formattedDate);
+        setScanTime(formattedTime);
+
+        const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcode);
+        const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
+
+        console.log("Document Snapshot:", documentSnapshot.exists);
+
+        if (documentSnapshot.exists) {
+            Alert.alert(
+                'Procedimiento ya registrado',
+                'Este procedimiento ya ha sido registrado previamente para este folio escaneado.',
+                [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+                { cancelable: false }
+            );
+        } else {
+            const user = auth().currentUser;
+            const userEmail = user ? user.email : 'Correo no disponible'; // Cambia esto según cómo obtienes el correo del usuario
+
+            await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
+                selectedArea: selectedArea,
+                scanDate: formattedDate,
+                scanTime: formattedTime,
+                userEmail: userEmail, // Agregas el correo del usuario aquí
+            });
+
+            if (selectedProcedure === 'Salida CX') {
+                navigation.navigate('recambio');
             } else {
-                await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
-                    selectedArea: selectedArea,
-                    scanDate: formattedDate,
-                    scanTime: formattedTime,
-                    // Remove patientId field
-                });
-
-                if (selectedProcedure === 'Salida CX') {
-                    navigation.navigate('recambio'); 
-                } else {
-                    handleNavigateToDescription(); 
-                }
-
-                setProcedureTimes(prevState => ({
-                    ...prevState,
-                    [selectedProcedure]: formattedTime,
-                }));
-
-                if (selectedProcedure === 'Salida CX') {
-                    const allTimesRegistered = Object.values(procedureTimes).every(time => time !== null);
-                    setFinalizationEnabled(allTimesRegistered);
-                }
+                handleNavigateToDescription();
             }
-        } catch (error) {
-            console.error('Error al registrar el procedimiento:', error);
         }
-    };
+
+        // Guardar información en la colección de seguimiento
+        const seguimientoRef = firestore().collection('Seguimiento').doc('Fecha').collection(formattedDate).doc('paciente1');
+
+        const procedimientoData = {
+            [selectedProcedure]: formattedTime,
+        };
+
+        await seguimientoRef.collection('procedimientosRegistrados').doc(selectedProcedure).set(procedimientoData);
+    } catch (error) {
+        console.error('Error al registrar el procedimiento:', error);
+    }
+};
+
+    
+    
+    
+    
+    
+    
 
     const handleNavigateToDescription = async () => {
         try {
+            const user = auth().currentUser;
+            const userEmail = user ? user.email : 'Correo no disponible'; // Obtén el correo del usuario
+        
             const snapshot = await firestore().collection('Foliosescaneadosurg').doc(barcode).collection('Procedimientosregistrados').get();
             const dataList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            navigation.navigate('descripcionetapas', { data: dataList });
+            navigation.navigate('descripcionetapas', { data: dataList, userEmail: userEmail }); // Pasa el correo electrónico como parámetro
         } catch (error) {
             console.error('Error al obtener la información:', error);
         }
@@ -178,58 +193,57 @@ const RegistroDatosURG = ({ route }) => {
     };
 
     return (
-        <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
-            <View style={styles.container}>
-                <Image source={logoImage} style={styles.logo} />
-                <View style={styles.headingContainer}>
-                    <Text style={styles.heading}>Registro de Tiempos de Ingreso</Text>
-                </View>
-                <Text style={styles.barcode}>Folio Escaneado: {barcode}</Text>
-                <Text style={styles.scanDateTime}>Fecha del Escaneo: {scanDate}</Text>
-                <Text style={styles.scanDateTime}>Hora del Escaneo: {scanTime}</Text>
+        <ScrollView contentContainerStyle={styles.container} contentInsetAdjustmentBehavior="never">
+            <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
+                <View style={styles.innerContainer}>
+                    <Image source={logoImage} style={styles.logo} />
+                    <View style={styles.headingContainer}>
+                        <Text style={styles.heading}>Registro de Tiempos de Ingreso</Text>
+                    </View>
+                    <Text style={styles.barcode}>Folio Escaneado: {barcode}</Text>
+                    {/* <Text style={styles.scanDateTime}>Fecha del Escaneo: {scanDate}</Text> */}
+                    {/* <Text style={styles.scanDateTime}>Hora del Escaneo: {scanTime}</Text> */}
 
-                <View style={styles.dropdown}>
-                    <Text style={styles.dropdownTitle}>Selecciona un Procedimiento</Text>
-                    <ScrollView style={styles.dropdownOptions}>
-                        {renderOptions(['Registro', 'Triage', 'Trauma 2', 'Consultorio', 'Salida', 'Rayos X'], setSelectedProcedure, selectedProcedure)}
-                    </ScrollView>
-                </View>
-
-                {selectedProcedure && (
                     <View style={styles.dropdown}>
-                        <Text style={styles.dropdownTitle}>Selecciona un Área</Text>
+                        <Text style={[styles.dropdownTitle, styles.largerText]}>Selecciona un Procedimiento</Text>
                         <ScrollView style={styles.dropdownOptions}>
-                            {renderOptions(areas, setSelectedArea, selectedArea)}
+                            {renderOptions(['Ingreso','Triage', 'Atencion Medicina General', 'Admin Medicamentos', 'Procedimientos', 'Laboratorios', 'Rayos X', 'Revaloración Medicina General', 'Atención Medicina especializada', 'Ordenes médicas Especializadas', 'Salida', 'Hospitalización', 'Cirugía', 'Remisión', 'Observación'], setSelectedProcedure, selectedProcedure)}
                         </ScrollView>
                     </View>
-                )}
 
-                <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={!selectedProcedure || !selectedArea}>
-                    <Text style={styles.registerButtonText}>Registrar</Text>
-                </TouchableOpacity>
+                    {selectedProcedure && (
+                        <View style={styles.dropdown}>
+                            <Text style={styles.dropdownTitle}>Selecciona un Área</Text>
+                            <ScrollView style={styles.dropdownOptions}>
+                                {renderOptions(areas, setSelectedArea, selectedArea)}
+                            </ScrollView>
+                        </View>
+                    )}
 
-                {finalizationEnabled && (
-                    <TouchableOpacity style={styles.finalizationButton} onPress={() => console.log('Finalización registrada')}>
-                        <Text style={styles.finalizationButtonText}>Finalización</Text>
+                    <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={!selectedProcedure || !selectedArea}>
+                        <Text style={styles.registerButtonText}>Registrar</Text>
                     </TouchableOpacity>
-                )}
-
-                <TouchableOpacity style={styles.descriptionButton} onPress={handleNavigateToDescription}>
-                    <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
-                </TouchableOpacity>
-            </View>
-        </ImageBackground>
+                    
+                    <TouchableOpacity style={styles.descriptionButton} onPress={handleNavigateToDescription}>
+                        <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
+                    </TouchableOpacity>
+                </View>
+            </ImageBackground>
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flexGrow: 1,
+    },
     backgroundImage: {
         flex: 1,
         resizeMode: 'cover',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    container: {
+    innerContainer: {
         flex: 1,
         justifyContent: 'flex-start',
         alignItems: 'center',
@@ -284,6 +298,9 @@ const styles = StyleSheet.create({
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
     },
+    largerText: {
+        fontSize: 24, // Tamaño de texto aumentado
+    },
     dropdownOptions: {
         maxHeight: 150,
         backgroundColor: 'white',
@@ -312,22 +329,6 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     registerButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
-    },
-    finalizationButton: {
-        backgroundColor: '#2F9FFA',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 5,
-        elevation: 5,
-        marginBottom: 10,
-    },
-    finalizationButtonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',

@@ -1,4 +1,3 @@
-// Admin.js
 import React from 'react';
 import { View, TouchableOpacity, Text, ImageBackground, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -22,9 +21,14 @@ function Admin() {
     }
   };
 
-  const handleVerTiempos = () => {
-    // Navegar a la pantalla de ver tiempos
-    navigation.navigate('vertiempos');
+  const handleVerTiemposRecambio = () => {
+    // Navegar a la pantalla de ver tiempos de recambio
+    navigation.navigate('vertiemposrecambio');
+  };
+
+  const handleVerTiemposUrgencias = () => {
+    // Navegar a la pantalla de ver tiempos de urgencias
+    navigation.navigate('tiemposurgencias');
   };
 
   return (
@@ -35,8 +39,14 @@ function Admin() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={handleVerTiempos} style={styles.button}>
+          <TouchableOpacity onPress={handleVerTiemposRecambio} style={styles.button}>
             <Text style={styles.buttonText}>Ver Tiempos de recambio</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={handleVerTiemposUrgencias} style={styles.button}>
+            <Text style={styles.buttonText}>Ver Tiempos de urgencias</Text>
           </TouchableOpacity>
         </View>
 

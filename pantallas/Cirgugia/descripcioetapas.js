@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ImageBackground, Image, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ImageBackground, Image, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
 const logoImage = require('../imagenes/logorectangular.png');
@@ -8,11 +9,15 @@ const logoImage = require('../imagenes/logorectangular.png');
 const DescripcionEtapas = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { data } = route.params;
+    const { data, userEmail } = route.params;
     const [loading, setLoading] = useState(true);
     const [totalScanTime, setTotalScanTime] = useState(null); 
     const [isLoadingNewTime, setIsLoadingNewTime] = useState(false);
-
+    const [selectedProcedure, setSelectedProcedure] = useState(null);
+    const [selectedArea, setSelectedArea] = useState(null);
+    const [selectedScanDate, setSelectedScanDate] = useState(null);
+    const [selectedScanTime, setSelectedScanTime] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
     useEffect(() => {
         if (data) {
@@ -35,16 +40,48 @@ const DescripcionEtapas = () => {
         return differenceInMinutes;
     };
 
-    const calculateTotalScanTime = () => {
+    const calculateTotalScanTime = async () => {
         if (!data) return;
 
-        const firstStartTime = data.find(item => item.id === 'Entrada Transfer')?.scanTime;
-        const lastEndTime = data.find(item => item.id === 'Finalización')?.scanTime;
+        const firstStartTime = data.find(item => item.id === 'Registro')?.scanTime;
+        const lastEndTime = data.find(item => item.id === 'Salida')?.scanTime;
 
         if (firstStartTime && lastEndTime) {
             const totalDuration = calculateTimeDifference(firstStartTime, lastEndTime);
             setTotalScanTime(`${totalDuration} minutos`);
+
+            // Guardar el tiempo total en Firebase
+            const barcode = route.params.barcode; // Obtén el barcode de los parámetros o de donde corresponda
+            try {
+                await firestore()
+                    .collection('Foliosescaneadosurg')
+                    .doc(barcode)
+                    .collection('tiempototal')
+                    .add({
+                        totalDuration: totalDuration,
+                        timestamp: firestore.FieldValue.serverTimestamp(),
+                    });
+                console.log('Tiempo total registrado en Firebase');
+            } catch (error) {
+                console.error('Error al registrar el tiempo total en Firebase:', error);
+            }
         }
+    };
+
+    const handleScanNewTime = () => {
+        setIsLoadingNewTime(true); 
+        setTimeout(() => {
+            setIsLoadingNewTime(false); 
+            navigation.navigate('MainPanel');
+        }, 2000); 
+    };
+
+    const handleCardPress = (procedure, area, scanDate, scanTime) => {
+        setSelectedProcedure(procedure);
+        setSelectedArea(area);
+        setSelectedScanDate(scanDate);
+        setSelectedScanTime(scanTime);
+        setModalVisible(true);
     };
 
     const renderCards = () => {
@@ -57,21 +94,14 @@ const DescripcionEtapas = () => {
         });
 
         return sortedData.map(item => (
-            <View key={item.id} style={styles.card}>
-                <Text style={styles.cardText}>Procedimiento: {item.id}</Text>
-                <Text style={styles.cardText}>Área: {item.selectedArea}</Text>
-                <Text style={styles.cardText}>Fecha del Escaneo: {item.scanDate}</Text>
-                <Text style={styles.cardText}>Hora del Escaneo: {item.scanTime}</Text>
-            </View>
+            <TouchableOpacity 
+                key={item.id} 
+                style={styles.card} 
+                onPress={() => handleCardPress(item.id, item.selectedArea, item.scanDate, item.scanTime)}
+            >
+                <Text style={styles.cardText}>{item.id}</Text>
+            </TouchableOpacity>
         ));
-    };
-
-    const handleScanNewTime = () => {
-        setIsLoadingNewTime(true); // Activar el indicador de carga
-        setTimeout(() => {
-            setIsLoadingNewTime(false); // Desactivar el indicador de carga después de 2 segundos (simulación)
-            navigation.navigate('MainPanel');
-        }, 2000); // Simulando un escaneo que toma 2 segundos mientras el panel carga a la siguiente vista
     };
 
     return (
@@ -95,14 +125,40 @@ const DescripcionEtapas = () => {
                             <TouchableOpacity
                                 style={styles.scanNewButton}
                                 onPress={handleScanNewTime}
-                                disabled={isLoadingNewTime} // Deshabilitar el botón si está cargando
+                                disabled={isLoadingNewTime} 
                             >
-                                {isLoadingNewTime ? ( // Mostrar el indicador de carga si está cargando
+                                {isLoadingNewTime ? ( 
                                     <ActivityIndicator size="small" color="white" />
                                 ) : (
                                     <Text style={styles.scanNewButtonText}>Escanear Nuevo Tiempo</Text>
                                 )}
                             </TouchableOpacity>
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+                                visible={modalVisible}
+                                onRequestClose={() => {
+                                    setModalVisible(false);
+                                }}
+                            >
+                                <View style={styles.centeredView}>
+                                    <View style={styles.modalView}>
+                                        <Text style={styles.modalHeading}>Detalles del Procedimiento</Text>
+                                        <Text style={styles.modalText}>Procedimiento: {selectedProcedure}</Text>
+                                        <Text style={styles.modalText}>Área: {selectedArea}</Text>
+                                        <Text style={styles.modalText}>Fecha del Escaneo: {selectedScanDate}</Text>
+                                        <Text style={styles.modalText}>Hora del Escaneo: {selectedScanTime}</Text>
+                                        <Text style={styles.modalText}>Correo del Usuario: <Text>{userEmail}</Text></Text>
+
+                                        <TouchableOpacity
+                                            style={styles.closeButton}
+                                            onPress={() => setModalVisible(false)}
+                                        >
+                                            <Text style={styles.closeButtonText}>Cerrar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </Modal>
                         </>
                     )}  
                 </View>
@@ -184,6 +240,49 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.75)',
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalHeading: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    modalText: {
+        marginBottom: 10,
+        fontSize: 16,
+    },
+    closeButton: {
+        backgroundColor: '#2196F3',
+        borderRadius: 5,
+        padding: 10,
+        elevation: 2,
+        marginTop: 15,
+    },
+    closeButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 });
 

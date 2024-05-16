@@ -8,10 +8,11 @@ const logoImage = require('../imagenes/logorectangular.png');
 const DescripcionEtapasUrgencias = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { data } = route.params;
+    const { data, userEmail } = route.params;
     const [loading, setLoading] = useState(true);
     const [totalScanTime, setTotalScanTime] = useState(null); 
     const [isLoadingNewTime, setIsLoadingNewTime] = useState(false);
+    
 
 
     useEffect(() => {
@@ -49,22 +50,24 @@ const DescripcionEtapasUrgencias = () => {
 
     const renderCards = () => {
         if (!data) return null;
-
+    
         const sortedData = [...data].sort((a, b) => {
             if (a.scanTime < b.scanTime) return -1;
             if (a.scanTime > b.scanTime) return 1;
             return 0;
         });
-
+    
         return sortedData.map(item => (
             <View key={item.id} style={styles.card}>
                 <Text style={styles.cardText}>Procedimiento: {item.id}</Text>
                 <Text style={styles.cardText}>Área: {item.selectedArea}</Text>
                 <Text style={styles.cardText}>Fecha del Escaneo: {item.scanDate}</Text>
                 <Text style={styles.cardText}>Hora del Escaneo: {item.scanTime}</Text>
+                <Text style={styles.userInfo}>Correo Electrónico: {userEmail}</Text>
             </View>
         ));
     };
+    
 
     const handleScanNewTime = () => {
         setIsLoadingNewTime(true); // Activar el indicador de carga
@@ -81,6 +84,7 @@ const DescripcionEtapasUrgencias = () => {
                     <Image source={logoImage} style={styles.logo} />
                     <View style={styles.headingContainer}>
                         <Text style={styles.heading}>Descripción de Etapas</Text>
+                        
                     </View>
                     {loading ? (
                         <Text style={styles.loadingText}>Cargando...</Text>
@@ -181,6 +185,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: 'white',
         marginBottom: 20,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: -1, height: 1 },
+        textShadowRadius: 10,
+    },
+    userInfo: {
+        fontSize: 16,
+        color: 'white',
+        marginBottom: 10,
         textShadowColor: 'rgba(0, 0, 0, 0.75)',
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
