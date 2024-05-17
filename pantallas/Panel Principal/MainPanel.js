@@ -10,7 +10,7 @@ function MainPanel() {
   const navigation = useNavigation();
 
   const handleNavigateToCirugia = () => {
-    navigation.navigate('EscanerCX');
+    navigation.navigate('proximamente');
   };
 
   const handleNavigateToUrgencias = () => {
