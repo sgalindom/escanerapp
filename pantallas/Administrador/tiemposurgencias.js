@@ -13,7 +13,8 @@ const TiempoUrgenciaScreen = () => {
     useEffect(() => {
         const fetchFolios = async () => {
             try {
-                const formattedDate = '2024-05-16'; // Puedes obtener la fecha actual o cualquier fecha que desees
+                const formattedDate = '2024-05-17'; // falta modificar la fecha para qeu sea general y no por fecha especifica
+                
                 const seguimientoRef = firestore().collection('Seguimiento').doc(formattedDate).collection('Folios');
 
                 const unsubscribe = seguimientoRef.onSnapshot(snapshot => {
