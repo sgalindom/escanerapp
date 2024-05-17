@@ -1,80 +1,178 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, ImageBackground, Image } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 
-const TiemposUrgencias = () => {
-  const [loading, setLoading] = useState(true);
-  const [procedimientos, setProcedimientos] = useState([]);
+const fondoEscanerImage = require('../imagenes/Login.jpg');
+const logoImage = require('../imagenes/logorectangular.png');
 
-  // Puedes ajustar `formattedDate` según tus necesidades
-  const formattedDate = '2024-05-16'; // Ejemplo de fecha formateada
+const TiempoUrgenciaScreen = () => {
+    const [foliosData, setFoliosData] = useState([]);
+    const [selectedFolio, setSelectedFolio] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('Seguimiento')
-      .doc('Fecha')
-      .collection(formattedDate)
-      .doc('paciente1')
-      .collection('procedimientosRegistrados')
-      .onSnapshot(querySnapshot => {
-        const procedimientosData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setProcedimientos(procedimientosData);
-        setLoading(false);
-      }, error => {
-        console.error('Error fetching document:', error);
-        setLoading(false);
-      });
+    useEffect(() => {
+        const fetchFolios = async () => {
+            try {
+                const formattedDate = '2024-05-16'; // Puedes obtener la fecha actual o cualquier fecha que desees
+                const seguimientoRef = firestore().collection('Seguimiento').doc(formattedDate).collection('Folios');
 
-    // Desuscribirse del listener al desmontar el componente
-    return () => unsubscribe();
-  }, [formattedDate]);
+                const unsubscribe = seguimientoRef.onSnapshot(snapshot => {
+                    const folios = [];
+                    snapshot.forEach(doc => {
+                        folios.push({
+                            id: doc.id,
+                            data: doc.data()
+                        });
+                    });
+                    setFoliosData(folios);
+                });
 
-  if (loading) {
+                return () => unsubscribe();
+            } catch (error) {
+                console.error('Error al obtener los folios:', error);
+            }
+        };
+
+        fetchFolios();
+    }, []);
+
+    const handleFolioPress = (folio) => {
+        setSelectedFolio(folio);
+        setModalVisible(true);
+    };
+
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
+        <ImageBackground source={fondoEscanerImage} style={styles.backgroundImage}>
+            <View style={styles.container}>
+                <Image source={logoImage} style={styles.logo} />
+                <Text style={styles.title}>Folios</Text>
+                <FlatList
+                    data={foliosData}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity onPress={() => handleFolioPress(item)}>
+                            <View style={styles.folioItem}>
+                                <Text style={styles.folioText}>Folio: {item.id}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+                />
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Detalles del Folio</Text>
+                            {selectedFolio && Object.entries(selectedFolio.data).map(([key, value]) => (
+                                <View key={key} style={styles.fieldContainer}>
+                                    <Text style={styles.fieldName}>{key}</Text>
+                                    <View style={styles.fieldLine} />
+                                    <Text style={styles.fieldValue}>Área: {value.Area}</Text>
+                                    <View style={styles.fieldLine} />
+                                    <Text style={styles.fieldValue}>Hora: {value.Hora}</Text>
+                                </View>
+                            ))}
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text style={styles.closeButtonText}>Cerrar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+        </ImageBackground>
     );
-  }
-
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={procedimientos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemText}>{item.id}</Text>
-            <Text style={styles.itemText}>{item[item.id]}</Text>
-          </View>
-        )}
-      />
-    </View>
-  );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  itemContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  itemText: {
-    fontSize: 16,
-    color: 'black',
-  },
+    backgroundImage: {
+        flex: 1,
+        resizeMode: 'cover',
+        justifyContent: 'center',
+    },
+    container: {
+        flex: 1,
+        padding: 20,
+        alignItems: 'center',
+    },
+    logo: {
+        width: 200,
+        height: 80,
+        resizeMode: 'contain',
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: 'white',
+    },
+    folioItem: {
+        marginBottom: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        padding: 20,
+        borderRadius: 10,
+        width: '100%',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    folioText: {
+        fontWeight: 'bold',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    fieldContainer: {
+        marginBottom: 15,
+    },
+    fieldName: {
+        fontWeight: 'bold',
+    },
+    fieldLine: {
+        height: 1,
+        backgroundColor: '#ccc',
+        marginBottom: 5,
+    },
+    fieldValue: {
+        marginBottom: 5,
+    },
+    closeButton: {
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 20,
+        alignSelf: 'center',
+    },
+    closeButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
 });
 
-export default TiemposUrgencias;
+export default TiempoUrgenciaScreen;

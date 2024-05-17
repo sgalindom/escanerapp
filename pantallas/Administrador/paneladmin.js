@@ -21,11 +21,6 @@ function Admin() {
     }
   };
 
-  const handleVerTiemposRecambio = () => {
-    // Navegar a la pantalla de ver tiempos de recambio
-    navigation.navigate('vertiemposrecambio');
-  };
-
   const handleVerTiemposUrgencias = () => {
     // Navegar a la pantalla de ver tiempos de urgencias
     navigation.navigate('tiemposurgencias');
@@ -38,12 +33,6 @@ function Admin() {
           <Image source={logoImage} style={styles.logo} />
         </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={handleVerTiemposRecambio} style={styles.button}>
-            <Text style={styles.buttonText}>Ver Tiempos de recambio</Text>
-          </TouchableOpacity>
-        </View>
-        
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleVerTiemposUrgencias} style={styles.button}>
             <Text style={styles.buttonText}>Ver Tiempos de urgencias</Text>

@@ -105,64 +105,75 @@ const RegistroDatosURG = ({ route }) => {
 
 
 
-   const registerProcedure = async () => {
-    try {
-        const currentDateTime = new Date();
-        const formattedDate = `${currentDateTime.getFullYear()}-${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}-${currentDateTime.getDate().toString().padStart(2, '0')}`;
-        const formattedTime = `${currentDateTime.getHours().toString().padStart(2, '0')}:${currentDateTime.getMinutes().toString().padStart(2, '0')}`;
 
-        setScanDate(formattedDate);
-        setScanTime(formattedTime);
 
-        const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcode);
-        const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
-
-        console.log("Document Snapshot:", documentSnapshot.exists);
-
-        if (documentSnapshot.exists) {
-            Alert.alert(
-                'Procedimiento ya registrado',
-                'Este procedimiento ya ha sido registrado previamente para este folio escaneado.',
-                [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-                { cancelable: false }
-            );
-        } else {
-            const user = auth().currentUser;
-            const userEmail = user ? user.email : 'Correo no disponible'; // Cambia esto según cómo obtienes el correo del usuario
-
-            await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
-                selectedArea: selectedArea,
-                scanDate: formattedDate,
-                scanTime: formattedTime,
-                userEmail: userEmail, // Agregas el correo del usuario aquí
-            });
-
-            if (selectedProcedure === 'Salida CX') {
-                navigation.navigate('recambio');
+    const registerProcedure = async () => {
+        try {
+            const currentDateTime = new Date();
+            const formattedDate = `${currentDateTime.getFullYear()}-${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}-${currentDateTime.getDate().toString().padStart(2, '0')}`;
+            const formattedTime = `${currentDateTime.getHours().toString().padStart(2, '0')}:${currentDateTime.getMinutes().toString().padStart(2, '0')}`;
+    
+            setScanDate(formattedDate);
+            setScanTime(formattedTime);
+    
+            const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcode);
+            const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
+    
+            console.log("Document Snapshot:", documentSnapshot.exists);
+    
+            if (documentSnapshot.exists) {
+                Alert.alert(
+                    'Procedimiento ya registrado',
+                    'Este procedimiento ya ha sido registrado previamente para este folio escaneado.',
+                    [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+                    { cancelable: false }
+                );
             } else {
-                handleNavigateToDescription();
+                const user = auth().currentUser;
+                const userEmail = user ? user.email : 'Correo no disponible';
+    
+                await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
+                    selectedArea: selectedArea,
+                    scanDate: formattedDate,
+                    scanTime: formattedTime,
+                    userEmail: userEmail,
+                });
+    
+                if (selectedProcedure === 'Salida CX') {
+                    navigation.navigate('recambio');
+                } else {
+                    handleNavigateToDescription();
+                }
             }
+    
+            // Guardar información en la colección de seguimiento
+            const seguimientoFolioRef = firestore().collection('Seguimiento').doc(formattedDate).collection('Folios').doc(barcode); // Utilizamos el número de folio como documento
+    
+            // Obtener los procedimientos existentes del documento del folio
+            const existingProcedures = (await seguimientoFolioRef.get()).data() || {};
+    
+            // Agregar el nuevo procedimiento al objeto de procedimientos existentes
+            const procedimientoData = {
+                ...existingProcedures,
+                [selectedProcedure]: {
+                    Area: selectedArea,
+                    Hora: formattedTime
+                }
+            };
+    
+            await seguimientoFolioRef.set(procedimientoData); // Guardar los procedimientos actualizados en el documento del folio
+        } catch (error) {
+            console.error('Error al registrar el procedimiento:', error);
         }
+    };
+    
+    
+    
 
-        // Guardar información en la colección de seguimiento
-        const seguimientoRef = firestore().collection('Seguimiento').doc('Fecha').collection(formattedDate).doc('paciente1');
 
-        const procedimientoData = {
-            [selectedProcedure]: formattedTime,
-        };
 
-        await seguimientoRef.collection('procedimientosRegistrados').doc(selectedProcedure).set(procedimientoData);
-    } catch (error) {
-        console.error('Error al registrar el procedimiento:', error);
-    }
-};
 
-    
-    
-    
-    
-    
-    
+
 
     const handleNavigateToDescription = async () => {
         try {
@@ -354,3 +365,4 @@ const styles = StyleSheet.create({
 });
 
 export default RegistroDatosURG;
+
