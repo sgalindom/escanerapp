@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from '../BarcodeContext';
 import firestore from '@react-native-firebase/firestore';
-import firebase from '@react-native-firebase/auth'; // Importa firebase.auth para obtener el usuario autenticado
+import auth from '@react-native-firebase/auth';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logorectangular.png');
-const loadingImage = require('../imagenes/Loading.jpg');
+const logoImage = require('../imagenes/logoblanco.png');
 
 const RegistroDatosCX = ({ route }) => {
     const { barcode } = useBarcode();
@@ -24,6 +23,7 @@ const RegistroDatosCX = ({ route }) => {
     const [scanTime, setScanTime] = useState('');
     const [patientId, setPatientId] = useState(null); 
     const [isLoading, setIsLoading] = useState(false);
+    const [registeredProcedures, setRegisteredProcedures] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -38,7 +38,19 @@ const RegistroDatosCX = ({ route }) => {
         }
 
         generatePatientId(barcode); 
+        fetchRegisteredProcedures(barcode); // Fetch registered procedures when component mounts
     }, [route.params]);
+
+    const fetchRegisteredProcedures = async (barcodeValue) => {
+        try {
+            const folioRef = firestore().collection('Foliosescaneados').doc(barcodeValue);
+            const snapshot = await folioRef.collection('Procedimientosregistrados').get();
+            const procedures = snapshot.docs.map(doc => doc.id);
+            setRegisteredProcedures(procedures);
+        } catch (error) {
+            console.error('Error fetching registered procedures:', error);
+        }
+    };
 
     const updateAreas = (procedure) => {
         if (procedure === 'Entrada Transfer') {
@@ -95,8 +107,7 @@ const RegistroDatosCX = ({ route }) => {
             setScanDate(formattedDate);
             setScanTime(formattedTime);
 
-            // Obtener el correo electrónico del usuario actualmente autenticado
-            const currentUser = firebase.auth().currentUser;
+            const currentUser = auth().currentUser;
             const userEmail = currentUser.email;
 
             const folioRef = firestore().collection('Foliosescaneados').doc(barcode);
@@ -116,7 +127,6 @@ const RegistroDatosCX = ({ route }) => {
                     scanDate: formattedDate,
                     scanTime: formattedTime,
                     patientId: patientId !== null ? patientId.toString() : '', 
-                    // Agregar el correo electrónico del usuario al documento
                     userEmail: userEmail,
                 });
 
@@ -135,6 +145,9 @@ const RegistroDatosCX = ({ route }) => {
                     const allTimesRegistered = Object.values(procedureTimes).every(time => time !== null);
                     setFinalizationEnabled(allTimesRegistered);
                 }
+
+                // Update registered procedures list
+                setRegisteredProcedures(prevProcedures => [...prevProcedures, selectedProcedure]);
             }
         } catch (error) {
             console.error('Error al registrar información:', error);
@@ -154,18 +167,25 @@ const RegistroDatosCX = ({ route }) => {
     };
 
     const renderOptions = (options, setSelectedOption, selectedOption) => {
-        return options.map((option, index) => (
-            <TouchableOpacity
-                key={index}
-                style={[
-                    styles.option,
-                    selectedOption === option && styles.selectedOption,
-                ]}
-                onPress={() => setSelectedOption(option)}
-            >
-                <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-        ));
+        return options.map((option, index) => {
+            const isRegistered = registeredProcedures.includes(option);
+            return (
+                <TouchableOpacity
+                    key={index}
+                    style={[
+                        styles.option,
+                        selectedOption === option && styles.selectedOption,
+                        isRegistered && styles.disabledOption,
+                    ]}
+                    onPress={() => !isRegistered && setSelectedOption(option)}
+                    disabled={isRegistered}
+                >
+                    <Text style={[styles.optionText, isRegistered && styles.disabledOptionText]}>
+                        {option} {isRegistered ? '(Registrado)' : ''}
+                    </Text>
+                </TouchableOpacity>
+            );
+        });
     };
 
     return (
@@ -196,7 +216,11 @@ const RegistroDatosCX = ({ route }) => {
                 )}
 
                 <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={!selectedProcedure || !selectedArea}>
-                    <Text style={styles.registerButtonText}>Registrar</Text>
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="white" />
+                    ) : (
+                        <Text style={styles.registerButtonText}>Registrar</Text>
+                    )}
                 </TouchableOpacity>
 
                 {finalizationEnabled && (
@@ -206,16 +230,9 @@ const RegistroDatosCX = ({ route }) => {
                 )}
 
                 <TouchableOpacity style={styles.descriptionButton} onPress={handleNavigateToDescription}>
-                    <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
+                    <Text style={styles.descriptionButtonText}>Descripción de Etapas</Text>
                 </TouchableOpacity>
             </View>
-
-            {isLoading && (
-                <View style={styles.loadingContainer}>
-                    <Image source={loadingImage} style={styles.loadingImage} />
-                    <Text style={styles.loadingText}>Cargando...</Text>
-                </View>
-            )}
         </ImageBackground>
     );
 };
@@ -228,145 +245,115 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     container: {
-        flex: 1,
-        justifyContent: 'flex-start',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: 20,
+        borderRadius: 10,
+        width: '90%',
         alignItems: 'center',
-        paddingHorizontal: 20,
     },
     logo: {
-        width: 200,
-        height: 80,
+        width: 150,
+        height: 50,
         resizeMode: 'contain',
         marginBottom: 20,
     },
     headingContainer: {
-        alignItems: 'center',
         marginBottom: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     heading: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
-        color: 'white',
         textAlign: 'center',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
+        color: '#2c3e50',
     },
     barcode: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: 'white',
-        marginBottom: 10,
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
+        color: '#2c3e50',
+        marginBottom: 5,
     },
     scanDateTime: {
         fontSize: 16,
-        color: 'white',
+        color: '#2c3e50',
         marginBottom: 10,
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
     },
     dropdown: {
+        width: '100%',
         marginBottom: 20,
-        width: '80%',
     },
     dropdownTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: 'white',
-        marginBottom: 5,
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
+        fontSize: 18,
+        color: '#34495e',
+        marginBottom: 10,
     },
     dropdownOptions: {
         maxHeight: 150,
         backgroundColor: 'white',
         borderRadius: 5,
-        elevation: 5,
+        elevation: 3,
     },
     option: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+        padding: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomColor: '#ecf0f1',
     },
     selectedOption: {
-        backgroundColor: '#2F9FFA',
+        backgroundColor: '#2980b9',
     },
     optionText: {
         fontSize: 16,
-        color: 'black',
+        color: '#2c3e50',
+    },
+    disabledOption: {
+        backgroundColor: '#bdc3c7',
+    },
+    disabledOptionText: {
+        color: '#7f8c8d',
     },
     registerButton: {
-        backgroundColor: '#2F9FFA',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        backgroundColor: '#27ae60',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
         borderRadius: 5,
-        elevation: 5,
-        marginBottom: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3,
     },
     registerButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
     },
     finalizationButton: {
-        backgroundColor: '#2F9FFA',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        backgroundColor: '#c0392b',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
         borderRadius: 5,
-        elevation: 5,
-        marginBottom: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3,
+        marginTop: 20,
     },
     finalizationButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
     },
     descriptionButton: {
-        backgroundColor: '#2F9FFA',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        backgroundColor: '#2980b9',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
         borderRadius: 5,
-        elevation: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3,
+        marginTop: 20,
     },
     descriptionButtonText: {
         color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
-    },
-    loadingContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingImage: {
-        width: 50,
-        height: 50,
-        marginBottom: 20,
-    },
-    loadingText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: 'white',
     },
 });
 

@@ -1,16 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const fondoMainImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logo_2.png');
+const background = require('../imagenes/Login.jpg');
+const logo = require('../imagenes/logoblanco.png');
 
-function MainPanel() {
+const MainPanel = () => {
   const navigation = useNavigation();
 
   const handleNavigateToCirugia = () => {
-    navigation.navigate('proximamente');
+    navigation.navigate('EscanerCX');
   };
 
   const handleNavigateToUrgencias = () => {
@@ -22,25 +22,19 @@ function MainPanel() {
     navigation.replace('Login');
   };
 
-  
-
   return (
     <View style={styles.container}>
-      <ImageBackground source={fondoMainImage} style={styles.backgroundImage}>
-        <View style={styles.contentContainer}>
+      <ImageBackground source={background} style={styles.backgroundImage}>
+        <View style={styles.overlay}>
           <View style={styles.logoContainer}>
-            <Image source={logoImage} style={styles.logo} />
+            <Image source={logo} style={styles.logo} />
           </View>
-          <View style={styles.buttonWrapper}>
-            <TouchableOpacity onPress={handleNavigateToCirugia} style={styles.button}>
-              <Text style={styles.buttonText}>CIRUGÍA</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.buttonWrapper}>
-            <TouchableOpacity onPress={handleNavigateToUrgencias} style={styles.button}>
-              <Text style={styles.buttonText}>URGENCIAS</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={handleNavigateToCirugia} style={styles.button}>
+            <Text style={styles.buttonText}>CIRUGÍA</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleNavigateToUrgencias} style={styles.button}>
+            <Text style={styles.buttonText}>URGENCIAS</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
             <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
           </TouchableOpacity>
@@ -48,68 +42,79 @@ function MainPanel() {
       </ImageBackground>
     </View>
   );
-}
+};
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
   },
   backgroundImage: {
     flex: 1,
+    width: windowWidth,
+    height: windowHeight,
     resizeMode: 'cover',
     justifyContent: 'center',
-  },
-  contentContainer: {
-    flex: 1,
     alignItems: 'center',
+  },
+  overlay: {
+    flex: 1,
+    width: '100%',
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   logoContainer: {
-    marginBottom: 50, 
+    marginBottom: 50,
+    alignItems: 'center',
   },
   logo: {
-    width: 300, 
-    height: 200, 
+    width: 400,
+    height: 100,
     resizeMode: 'contain',
   },
-  buttonWrapper: {
-    marginBottom: 20, 
-  },
   button: {
-    backgroundColor: '#FFFFFF', 
-    width: 300, 
-    height: 100, 
-    borderRadius: 10, 
+    backgroundColor: '#2F9FFA',
+    width: '80%',
+    height: 60,
+    borderRadius: 30, // Bordes más redondeados
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
     elevation: 5,
   },
   buttonText: {
-    color: '#2F9FFA', 
-    fontSize: 20, 
+    color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   logoutButton: {
-    backgroundColor: '#FF6347', 
-    width: 200, 
-    height: 50, 
-    borderRadius: 10, 
+    backgroundColor: '#e74c3c',
+    width: '50%',
+    height: 50,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
   },
   logoutButtonText: {
-    color: '#FFFFFF', 
-    fontSize: 16, 
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
 });
 

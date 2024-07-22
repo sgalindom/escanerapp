@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Image } from
 import firestore from '@react-native-firebase/firestore';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logorectangular.png');
+const logoImage = require('../imagenes/logoblanco.png');
 
 const Vertiempos = () => {
   const [fechas, setFechas] = useState([]); // Estado para almacenar las fechas disponibles

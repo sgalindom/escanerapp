@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 const fondoMainImage = require('./imagenes/Login.jpg');
-const logoImage = require('./imagenes/logorectangular.png');
+const logoImage = require('./imagenes/logoblanco.png');
 
 
 function Proximamente() {

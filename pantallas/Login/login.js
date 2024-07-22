@@ -1,16 +1,15 @@
-// Login.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firebase } from '@react-native-firebase/auth';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const backgroundImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logo_2.png');
+const logoImage = require('../imagenes/logorectangular.png');
 
 function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -20,77 +19,99 @@ function Login({ navigation }) {
   const checkUserLoggedIn = async () => {
     const userToken = await AsyncStorage.getItem('userToken');
     if (userToken) {
-      // Si el usuario tiene un token de sesión guardado
-      // Consultar el rol del usuario o cualquier otra información necesaria para determinar si es administrador
-      const isAdmin = false; // Aquí debes implementar la lógica para determinar si el usuario es administrador
-
+      const isAdmin = false; // Implementa la lógica para determinar si el usuario es administrador
       if (isAdmin) {
-        // Si el usuario es administrador, navegar al panel de administrador
         navigation.replace('paneladmin');
       } else {
-        // Si no es administrador, navegar al panel principal
         navigation.replace('MainPanel');
       }
     }
   };
 
-  const handleLogin = async () => {
-    setIsLoading(true);
+  const showAlert = (title, message) => {
+    Alert.alert(title, message, [{ text: 'OK' }], { cancelable: false });
+  };
 
+  const handleLogin = async () => {
+    if (!email || !password) {
+      showAlert('Error', 'Por favor, ingrese su correo y contraseña');
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const response = await firebase.auth().signInWithEmailAndPassword(email, password);
-
       if (response.user) {
-        console.log('Inicio de sesión exitoso');
         await AsyncStorage.setItem('userToken', response.user.uid);
         if (email === 'admin@gmail.com') {
-          navigation.replace('paneladmin'); // Redireccionar al panel de administrador
+          navigation.replace('paneladmin');
         } else {
           navigation.replace('MainPanel');
         }
-      } else {
-        setError('Usuario o contraseña incorrectos');
       }
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      setError('Ocurrió un error al iniciar sesión');
+      let errorMessage = 'Ocurrió un error al iniciar sesión';
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errorMessage = 'Correo electrónico inválido';
+          break;
+        case 'auth/user-disabled':
+          errorMessage = 'Usuario deshabilitado';
+          break;
+        case 'auth/user-not-found':
+          errorMessage = 'Usuario no encontrado';
+          break;
+        case 'auth/wrong-password':
+          errorMessage = 'Contraseña incorrecta';
+          break;
+        default:
+          break;
+      }
+      showAlert('Error', errorMessage);
     }
-
     setIsLoading(false);
   };
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image source={logoImage} style={styles.logo} />
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image source={logoImage} style={styles.logo} />
+          </View>
+          <Text style={styles.welcomeText}>Bienvenido</Text>
+          <View style={styles.inputContainer}>
+            <Icon name="envelope" size={20} color="gray" style={styles.icon} />
+            <TextInput
+              placeholder="Usuario"
+              placeholderTextColor="#888"
+              onChangeText={(text) => setEmail(text)}
+              value={email}
+              style={styles.input}
+              keyboardType="email-address"
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Icon name="lock" size={20} color="gray" style={styles.icon} />
+            <TextInput
+              placeholder="Contraseña"
+              placeholderTextColor="#888"
+              secureTextEntry
+              onChangeText={(text) => setPassword(text)}
+              value={password}
+              style={styles.input}
+            />
+          </View>
+          <TouchableOpacity onPress={handleLogin} style={styles.button}>
+            <Text style={styles.buttonText}>Iniciar sesión</Text>
+          </TouchableOpacity>
+          {isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#2F9FFA" />
+            </View>
+          )}
         </View>
-        <Text style={styles.welcomeText}>Bienvenido</Text>
-        <TextInput
-          placeholder="Correo electrónico"
-          placeholderTextColor="black"
-          onChangeText={(text) => setEmail(text)}
-          value={email}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Contraseña"
-          placeholderTextColor="black"
-          secureTextEntry
-          onChangeText={(text) => setPassword(text)}
-          value={password}
-          style={styles.input}
-        />
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        <TouchableOpacity onPress={handleLogin} style={styles.button}>
-          <Text style={styles.buttonText}>Iniciar sesión</Text>
-        </TouchableOpacity>
       </View>
-      {isLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2F9FFA" />
-        </View>
-      )}
     </ImageBackground>
   );
 }
@@ -105,65 +126,88 @@ const styles = StyleSheet.create({
     height: windowHeight,
     resizeMode: 'cover',
   },
-  container: {
+  overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Cambia el color de fondo del overlay a negro con transparencia
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 24,
-    paddingTop: 50,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Fondo blanco con algo de transparencia
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10,
   },
   logoContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
     alignItems: 'center',
   },
   logo: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 200,
     resizeMode: 'contain',
   },
   welcomeText: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 10,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
+    color: 'black', // Cambia el color del texto de bienvenida a blanco
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 15,
+    borderRadius: 30, // Bordes más redondeados
+    paddingHorizontal: 15,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  icon: {
+    marginRight: 10,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderRadius: 8,
-    width: '100%',
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: 'white',
-    color: 'black',
+    flex: 1,
+    height: 40,
+    paddingLeft: 10,
   },
   button: {
     backgroundColor: '#2F9FFA',
-    padding: 12,
-    borderRadius: 8,
+    padding: 15,
+    borderRadius: 30,
     width: '100%',
     marginVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10,
   },
   buttonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 18,
   },
-  errorText: {
-    color: 'red',
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginBottom: 10,
-  },  
   loadingContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center', 
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 });
 

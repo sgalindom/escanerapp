@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logorectangular.png');
+const logoImage = require('../imagenes/logoblanco.png');
 
 const DescripcionEtapas = () => {
     const navigation = useNavigation();
@@ -43,7 +43,7 @@ const DescripcionEtapas = () => {
     const calculateTotalScanTime = async () => {
         if (!data) return;
 
-        const firstStartTime = data.find(item => item.id === 'Registro')?.scanTime;
+        const firstStartTime = data.find(item => item.id === 'Ingreso')?.scanTime;
         const lastEndTime = data.find(item => item.id === 'Salida')?.scanTime;
 
         if (firstStartTime && lastEndTime) {

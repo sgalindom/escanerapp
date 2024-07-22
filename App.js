@@ -29,6 +29,7 @@ import RegistroDatosURG from './pantallas/Urgencias/registrodatosurg';
 
 
 import TiemposUrgencias from './pantallas/Administrador/tiemposurgencias';
+import DescripcionEtapasUrgencias from './pantallas/Urgencias/descripcionetapasurgencias';
 
 
 
@@ -60,6 +61,7 @@ function App() {
             <Stack.Screen name="Registrocx" component={Registrocx} />
             <Stack.Screen name="registrodatoscx" component={RegistroDatosCX} />
             <Stack.Screen name="descripcionetapas" component={Descripcion} />
+            <Stack.Screen name="descripcionetapasurgencias" component={DescripcionEtapasUrgencias} />
             <Stack.Screen name="recambio" component={Recambio} />
 
 

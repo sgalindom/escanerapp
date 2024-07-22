@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, ImageBackgro
 import firestore from '@react-native-firebase/firestore';
 
 const fondoEscanerImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logorectangular.png');
+const logoImage = require('../imagenes/logoblanco.png');
 
 const TiempoUrgenciaScreen = () => {
     const [foliosData, setFoliosData] = useState([]);
@@ -13,7 +13,7 @@ const TiempoUrgenciaScreen = () => {
     useEffect(() => {
         const fetchFolios = async () => {
             try {
-                const formattedDate = '2024-05-17'; // falta modificar la fecha para qeu sea general y no por fecha especifica
+                const formattedDate = '2024-05-24'; // falta modificar la fecha para qeu sea general y no por fecha especifica
                 
                 const seguimientoRef = firestore().collection('Seguimiento').doc(formattedDate).collection('Folios');
 
