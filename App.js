@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { BarcodeProvider } from '../escaner/pantallas/BarcodeContext';
 import { DataProvider } from './pantallas/DataContext'; 
-import firebase from 'firebase/app';
+
 import 'firebase/firestore';
 
 import Login from './pantallas/Login/login';
@@ -30,6 +30,9 @@ import RegistroDatosURG from './pantallas/Urgencias/registrodatosurg';
 
 import TiemposUrgencias from './pantallas/Administrador/tiemposurgencias';
 import DescripcionEtapasUrgencias from './pantallas/Urgencias/descripcionetapasurgencias';
+import Farmacia from './pantallas/farmacia/farmacia';
+import PedidosFarmacia from './pantallas/farmacia/pedidosfarmacia';
+import LoginPanel from './pantallas/Login/login';
 
 
 
@@ -51,7 +54,7 @@ function App() {
             <Stack.Screen name="paneladmin" component={Admin} />
 
            
-            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Login" component={LoginPanel} />
             <Stack.Screen name="MainPanel" component={MainPanel} />
 
             
@@ -74,6 +77,8 @@ function App() {
 
             <Stack.Screen name="tiemposurgencias" component={TiemposUrgencias} />
 
+            <Stack.Screen name="farmacia" component={Farmacia} />
+            <Stack.Screen name="pedidosfarmacia" component={PedidosFarmacia} />
             
 
 

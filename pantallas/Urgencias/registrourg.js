@@ -1,26 +1,15 @@
-// Registrocx.js
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { StyleSheet, View, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { useNavigation } from '@react-navigation/native';
-import { useBarcode } from '../BarcodeContext'; 
-import firestore from '@react-native-firebase/firestore';
-
+import { useBarcode } from '../BarcodeContext';
 
 const Registrourg = () => {
   const [scannedData, setScannedData] = useState(null);
-  const [scanDateTime, setScanDateTime] = useState(null); 
-  const [patientCounter, setPatientCounter] = useState(0); // Nuevo estado para el contador de pacientes
+  const [scanDateTime, setScanDateTime] = useState(null);
   const cameraRef = useRef(null);
   const navigation = useNavigation();
-  const { setBarcode } = useBarcode(); 
-
-  useEffect(() => {
-    // Generar el paciente ID basado en el folio escaneado
-    if (scannedData) {
-      generatePatientId(scannedData);
-    }
-  }, [scannedData]);
+  const { setBarcode } = useBarcode();
 
   const handleBarcodeRead = ({ nativeEvent }) => {
     const barcodeValue = nativeEvent.codeStringValue;
@@ -32,24 +21,8 @@ const Registrourg = () => {
     setBarcode(barcodeValue);
   };
 
-  const generatePatientId = async (barcodeValue) => {
-    try {
-      // Consultar el último paciente registrado para este folio
-      const lastPatientSnapshot = await firestore().collection('Foliosescaneados').doc(barcodeValue).collection('Procedimientosregistrados').orderBy('createdAt', 'desc').limit(1).get();
-      let lastPatientNumber = 0;
-      if (!lastPatientSnapshot.empty) {
-        const lastPatientData = lastPatientSnapshot.docs[0].data();
-        lastPatientNumber = parseInt(lastPatientData.patientId.replace('paciente', '')) || 0;
-      }
-      const nextPatientNumber = lastPatientNumber + 1;
-      setPatientCounter(nextPatientNumber);
-    } catch (error) {
-      console.error('Error al generar el ID del paciente:', error);
-    }
-  };
-
   const handleRegister = () => {
-    navigation.navigate('registrodatosurg', { scanDateTime: scanDateTime, patientCounter: patientCounter }); // Pasar patientCounter como una prop
+    navigation.navigate('registrodatosurg', { scanDateTime: scanDateTime, scannedData: scannedData });
   };
 
   const handleScanAgain = () => {
@@ -86,7 +59,7 @@ const Registrourg = () => {
       </View>
     </View>
   );
-};  
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -142,4 +115,3 @@ const styles = StyleSheet.create({
 });
 
 export default Registrourg;
-

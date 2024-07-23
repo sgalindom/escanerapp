@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,20 @@ const logo = require('../imagenes/logoblanco.png');
 const MainPanel = () => {
   const navigation = useNavigation();
 
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      try {
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+          navigation.replace('Login');
+        }
+      } catch (error) {
+        console.error('Error checking login status', error);
+      }
+    };
+    checkLoggedIn();
+  }, [navigation]);
+
   const handleNavigateToCirugia = () => {
     navigation.navigate('EscanerCX');
   };
@@ -17,9 +31,18 @@ const MainPanel = () => {
     navigation.navigate('escanerurg');
   };
 
+  const handleNavigateToFarmacia = () => {
+    navigation.navigate('farmacia');
+  };
+
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken');
-    navigation.replace('Login');
+    try {
+      await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('refreshToken');
+      navigation.replace('Login');
+    } catch (error) {
+      console.error('Error logging out', error);
+    }
   };
 
   return (
@@ -34,6 +57,9 @@ const MainPanel = () => {
           </TouchableOpacity>
           <TouchableOpacity onPress={handleNavigateToUrgencias} style={styles.button}>
             <Text style={styles.buttonText}>URGENCIAS</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleNavigateToFarmacia} style={styles.button}>
+            <Text style={styles.buttonText}>FARMACIA</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
             <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
@@ -80,7 +106,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2F9FFA',
     width: '80%',
     height: 60,
-    borderRadius: 30, // Bordes más redondeados
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBarcode } from '../BarcodeContext';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const backgroundImage = require('../imagenes/Login.jpg');
@@ -20,10 +18,6 @@ const RegistroDatosURG = ({ route }) => {
     const navigation = useNavigation();
 
     useEffect(() => {
-        fetchRegisteredProcedures();
-    }, [barcode]);
-
-    useEffect(() => {
         if (route.params && route.params.scanDateTime) {
             const [date, time] = route.params.scanDateTime.split(' ');
             setScanDate(date);
@@ -34,22 +28,6 @@ const RegistroDatosURG = ({ route }) => {
     useEffect(() => {
         updateAreas(selectedProcedure);
     }, [selectedProcedure]);
-
-    const fetchRegisteredProcedures = async () => {
-        try {
-            const snapshot = await firestore().collection('Foliosescaneadosurg').doc(barcode).collection('Procedimientosregistrados').get();
-            const procedures = snapshot.docs.map(doc => doc.id);
-            setRegisteredProcedures(procedures);
-
-            if (procedures.length > 0 && procedures.includes(selectedProcedure)) {
-                updateAreas(selectedProcedure);
-            } else {
-                setAreas([]);
-            }
-        } catch (error) {
-            console.error('Error al obtener los procedimientos registrados:', error);
-        }
-    };
 
     const isValidProcedure = (procedure) => {
         if (procedure === 'Salida') {
@@ -164,52 +142,34 @@ const RegistroDatosURG = ({ route }) => {
             setScanDate(formattedDate);
             setScanTime(formattedTime);
 
-            const folioRef = firestore().collection('Foliosescaneadosurg').doc(barcode);
-            const documentSnapshot = await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).get();
-
-            if (documentSnapshot.exists) {
-                Alert.alert(
-                    'Procedimiento ya registrado',
-                    'Este procedimiento ya ha sido registrado previamente para este folio escaneado.',
-                    [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-                    { cancelable: false }
-                );
-            } else {
-                const user = auth().currentUser;
-                const userEmail = user ? user.email : 'Correo no disponible';
-
-                await folioRef.collection('Procedimientosregistrados').doc(selectedProcedure).set({
-                    selectedArea: selectedArea,
+            // Aquí debes hacer la llamada a tu API para registrar el procedimiento
+            const response = await fetch('https://yourapi.com/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    barcode,
+                    selectedProcedure,
+                    selectedArea,
                     scanDate: formattedDate,
                     scanTime: formattedTime,
-                    userEmail: userEmail,
-                });
+                }),
+            });
 
-                const updatedProcedures = registeredProcedures.filter(proc => proc !== selectedProcedure);
-                setRegisteredProcedures(updatedProcedures);
-                updateAreas(selectedProcedure);
-
-                if (selectedProcedure === 'Salida') {
-                    navigation.navigate('recambio');
-                } else {
-                    handleNavigateToDescription();
-                }
+            if (!response.ok) {
+                throw new Error('Error en el registro del procedimiento');
             }
 
-            const seguimientoFolioRef = firestore().collection('Seguimiento').doc(formattedDate).collection('Folios').doc(barcode);
+            const updatedProcedures = [...registeredProcedures, selectedProcedure];
+            setRegisteredProcedures(updatedProcedures);
+            updateAreas(selectedProcedure);
 
-            const existingProcedures = (await seguimientoFolioRef.get()).data() || {};
-
-            const procedimientoData = {
-                ...existingProcedures,
-                [selectedProcedure]: {
-                    Area: selectedArea,
-                    Hora: formattedTime
-                }
-            };
-
-            await seguimientoFolioRef.set(procedimientoData);
-
+            if (selectedProcedure === 'Salida') {
+                navigation.navigate('recambio');
+            } else {
+                handleNavigateToDescription();
+            }
         } catch (error) {
             console.error('Error al registrar el procedimiento:', error);
         }
@@ -217,13 +177,14 @@ const RegistroDatosURG = ({ route }) => {
 
     const handleNavigateToDescription = async () => {
         try {
-            const user = auth().currentUser;
-            const userEmail = user ? user.email : 'Correo no disponible';
+            // Aquí debes hacer la llamada a tu API para obtener la descripción de las etapas
+            const response = await fetch(`https://yourapi.com/description?barcode=${barcode}`);
+            if (!response.ok) {
+                throw new Error('Error al obtener la información');
+            }
+            const dataList = await response.json();
 
-            const snapshot = await firestore().collection('Foliosescaneadosurg').doc(barcode).collection('Procedimientosregistrados').get();
-            const dataList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            navigation.navigate('descripcionetapasurgencias', { data: dataList, userEmail: userEmail });
+            navigation.navigate('descripcionetapasurgencias', { data: dataList });
         } catch (error) {
             console.error('Error al obtener la información:', error);
         }
@@ -232,7 +193,7 @@ const RegistroDatosURG = ({ route }) => {
     const renderOptions = (options, setSelectedOption, selectedOption) => {
         return options.map((option, index) => {
             const isOptionVisible = registeredProcedures.includes(option) ? false : true;
-    
+
             return (
                 <View style={{ marginBottom: 10 }} key={index}>
                     <TouchableOpacity
@@ -251,161 +212,159 @@ const RegistroDatosURG = ({ route }) => {
             );
         });
     };
-    
-    
-        return (
-            <ScrollView contentContainerStyle={styles.container} contentInsetAdjustmentBehavior="never">
-                <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-                    <View style={styles.innerContainer}>
-                        <Image source={logoImage} style={styles.logo} />
-                        <View style={styles.headingContainer}>
-                            <Text style={styles.heading}>Registro de Tiempos de Ingreso</Text>
-                        </View>
-                        <Text style={styles.barcode}>Folio Escaneado: {barcode}</Text>
-    
-                        {/* Selección de Procedimientos */}
-                        <View style={styles.sectionContainer}>
-                            <Text style={styles.sectionTitle}>Selecciona un Procedimiento</Text>
-                            <ScrollView style={styles.optionsContainer} horizontal={true}>
-                                {renderOptions(['Ingreso', 'Triage', 'Atencion Medicina General', 'Admin Medicamentos', 'Procedimientos', 'Laboratorios', 'Rayos X', 'Revaloración Medicina General', 'Atención Medicina especializada', 'Ordenes médicas Especializadas', 'Salida', 'Hospitalización', 'Cirugía', 'Remisión', 'Observación'], setSelectedProcedure, selectedProcedure)}
+
+    return (
+        <ScrollView contentContainerStyle={styles.container} contentInsetAdjustmentBehavior="never">
+            <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+                <View style={styles.innerContainer}>
+                    <Image source={logoImage} style={styles.logo} />
+                    <View style={styles.headingContainer}>
+                        <Text style={styles.heading}>Registro de Tiempos de Ingreso</Text>
+                    </View>
+                    <Text style={styles.barcode}>Folio Escaneado: {barcode}</Text>
+
+                    {/* Selección de Procedimientos */}
+                    <View style={styles.sectionContainer}>
+                        <Text style={styles.sectionTitle}>Selecciona un Procedimiento</Text>
+                        <ScrollView style={styles.optionsContainer} horizontal={true}>
+                            {renderOptions(['Ingreso', 'Triage', 'Atencion Medicina General', 'Admin Medicamentos', 'Procedimientos', 'Laboratorios', 'Rayos X', 'Revaloración Medicina General', 'Atención Medicina especializada', 'Ordenes médicas Especializadas', 'Salida', 'Hospitalización', 'Cirugía', 'Remisión', 'Observación'], setSelectedProcedure, selectedProcedure)}
+                        </ScrollView>
+                    </View>
+
+                    {/* Selección de Áreas */}
+                    {selectedProcedure && (
+                        <View style={[styles.sectionContainer, styles.areaSectionContainer]}>
+                            <Text style={styles.sectionTitle}>Selecciona un Área</Text>
+                            <ScrollView style={styles.optionsContainer}>
+                                {renderOptions(areas, setSelectedArea, selectedArea)}
                             </ScrollView>
                         </View>
-    
-                        {/* Selección de Áreas */}
-                        {selectedProcedure && (
-                            <View style={[styles.sectionContainer, styles.areaSectionContainer]}>
-                                <Text style={styles.sectionTitle}>Selecciona un Área</Text>
-                                <ScrollView style={styles.optionsContainer}>
-                                    {renderOptions(areas, setSelectedArea, selectedArea)}
-                                </ScrollView>
-                            </View>
-                        )}
-    
-                        {/* Botón de Registro */}
-                        <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={!selectedProcedure || !selectedArea}>
-                            <Text style={styles.registerButtonText}>Registrar</Text>
-                        </TouchableOpacity>
-    
-                        {/* Botón de Descripción */}
-                        <TouchableOpacity style={styles.descriptionButton} onPress={handleNavigateToDescription}>
-                            <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ImageBackground>
-            </ScrollView>
-        );
-    };
-    
-    const styles = StyleSheet.create({
-        container: {
-            flexGrow: 1,
-        },
-        backgroundImage: {
-            flex: 1,
-            resizeMode: 'cover',
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        innerContainer: {
-            flex: 1,
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-        },
-        logo: {
-            width: 200,
-            height: 80,
-            resizeMode: 'contain',
-            marginBottom: 20,
-        },
-        headingContainer: {
-            alignItems: 'center',
-            marginBottom: 20,
-        },
-        heading: {
-            fontSize: 28,
-            fontWeight: 'bold',
-            color: 'white',
-            textAlign: 'center',
-            textShadowColor: 'rgba(0, 0, 0, 0.75)',
-            textShadowOffset: { width: -1, height: 1 },
-            textShadowRadius: 10,
-        },
-        barcode: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: 20,
-        },
-        sectionContainer: {
-            width: '100%',
-            marginBottom: 20,
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            borderRadius: 10,
-            padding: 10,
-        },
-        areaSectionContainer: {
-            marginTop: 20, // Añadimos un margen superior adicional para separar las secciones
-        },
-        sectionTitle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: 10,
-        },
-        optionsContainer: {
-            maxHeight: 150,
-            borderRadius: 5,
-            padding: 5,
-        },
-        registerButton: {
-            backgroundColor: '#004ba0',
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 5,
-            marginBottom: 20,
-        },
-        registerButtonText: {
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: 18,
-        },
-        descriptionButton: {
-            backgroundColor: '#0063b4',
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 5,
-        },
-        descriptionButtonText: {
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: 18,
-        },
-        option: {
-            backgroundColor: '#007bff',
-            paddingHorizontal: 15,
-            paddingVertical: 10,
-            borderRadius: 20,
-            marginRight: 10,
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-        optionText: {
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: 16,
-            marginRight: 2,
-        },
-        selectedOption: {
-            backgroundColor: '#0056b3',
-        },
-        optionHidden: {
-            opacity: 0.5,
-        },
-        checkIcon: {
-            marginLeft: 'auto',
-        },
-    });
-    
-    export default RegistroDatosURG;
-    
+                    )}
+
+                    {/* Botón de Registro */}
+                    <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={!selectedProcedure || !selectedArea}>
+                        <Text style={styles.registerButtonText}>Registrar</Text>
+                    </TouchableOpacity>
+
+                    {/* Botón de Descripción */}
+                    <TouchableOpacity style={styles.descriptionButton} onPress={handleNavigateToDescription}>
+                        <Text style={styles.descriptionButtonText}>Ver Descripción de Etapas</Text>
+                    </TouchableOpacity>
+                </View>
+            </ImageBackground>
+        </ScrollView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flexGrow: 1,
+    },
+    backgroundImage: {
+        flex: 1,
+        resizeMode: 'cover',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    innerContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    logo: {
+        width: 200,
+        height: 80,
+        resizeMode: 'contain',
+        marginBottom: 20,
+    },
+    headingContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    heading: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center',
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: -1, height: 1 },
+        textShadowRadius: 10,
+    },
+    barcode: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+        marginBottom: 20,
+    },
+    sectionContainer: {
+        width: '100%',
+        marginBottom: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 10,
+        padding: 10,
+    },
+    areaSectionContainer: {
+        marginTop: 20,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+        marginBottom: 10,
+    },
+    optionsContainer: {
+        maxHeight: 150,
+        borderRadius: 5,
+        padding: 5,
+    },
+    registerButton: {
+        backgroundColor: '#004ba0',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 5,
+        marginBottom: 20,
+    },
+    registerButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
+    descriptionButton: {
+        backgroundColor: '#0063b4',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 5,
+    },
+    descriptionButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
+    option: {
+        backgroundColor: '#007bff',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderRadius: 20,
+        marginRight: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    optionText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+        marginRight: 2,
+    },
+    selectedOption: {
+        backgroundColor: '#0056b3',
+    },
+    optionHidden: {
+        opacity: 0.5,
+    },
+    checkIcon: {
+        marginLeft: 'auto',
+    },
+});
+
+export default RegistroDatosURG;

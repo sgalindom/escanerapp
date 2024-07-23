@@ -1,94 +1,113 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { firebase } from '@react-native-firebase/auth';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ImageBackground, Image, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { login, storeTokens } from '../services/authService';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const backgroundImage = require('../imagenes/Login.jpg');
-const logoImage = require('../imagenes/logorectangular.png');
+const background = require('../imagenes/Login.jpg');
+const logo = require('../imagenes/logorectangular.png');
 
-function Login({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const LoginScreen = () => {
+  const [usuario, setUsuario] = useState('');
+  const [clave, setClave] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
-    checkUserLoggedIn();
-  }, []);
-
-  const checkUserLoggedIn = async () => {
-    const userToken = await AsyncStorage.getItem('userToken');
-    if (userToken) {
-      const isAdmin = false; // Implementa la lógica para determinar si el usuario es administrador
-      if (isAdmin) {
-        navigation.replace('paneladmin');
-      } else {
-        navigation.replace('MainPanel');
+    const checkLoggedIn = async () => {
+      try {
+        const token = await AsyncStorage.getItem('accessToken');
+        if (token) {
+          navigation.navigate('MainPanel');
+        }
+      } catch (error) {
+        console.error('Error checking login status', error);
       }
-    }
-  };
-
-  const showAlert = (title, message) => {
-    Alert.alert(title, message, [{ text: 'OK' }], { cancelable: false });
-  };
+    };
+    checkLoggedIn();
+  }, [navigation]);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      showAlert('Error', 'Por favor, ingrese su correo y contraseña');
+    if (usuario === '' || clave === '') {
+      showAlert('Por favor ingresa tu usuario y contraseña completos.', 'error');
       return;
     }
 
-    setIsLoading(true);
+    setLoading(true);
     try {
-      const response = await firebase.auth().signInWithEmailAndPassword(email, password);
-      if (response.user) {
-        await AsyncStorage.setItem('userToken', response.user.uid);
-        if (email === 'admin@gmail.com') {
-          navigation.replace('paneladmin');
-        } else {
-          navigation.replace('MainPanel');
-        }
+      const response = await login(usuario, clave, 'HIS');
+      console.log('API Response:', response);
+      const { tokens, error } = response;
+
+      if (tokens && tokens.accessToken) {
+        await storeTokens(tokens);
+        navigation.navigate('MainPanel');
+      } else {
+        showAlert('Usuario o contraseña incorrectos. Inténtalo de nuevo.', 'error');
       }
     } catch (error) {
-      let errorMessage = 'Ocurrió un error al iniciar sesión';
-      switch (error.code) {
-        case 'auth/invalid-email':
-          errorMessage = 'Correo electrónico inválido';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'Usuario deshabilitado';
-          break;
-        case 'auth/user-not-found':
-          errorMessage = 'Usuario no encontrado';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Contraseña incorrecta';
-          break;
-        default:
-          break;
-      }
-      showAlert('Error', errorMessage);
+      showAlert('Hubo un problema al intentar conectar con el servidor. Inténtalo más tarde.', 'error');
+    } finally {
+      setLoading(false);
     }
-    setIsLoading(false);
+  };
+
+  const showAlert = (message, type) => {
+    const iconName = type === 'error' ? 'exclamation-circle' : 'check-circle';
+    const iconColor = type === 'error' ? 'red' : 'green';
+    
+    Alert.alert(
+      '',
+      message,
+      [{ text: 'OK' }],
+      {
+        cancelable: false,
+        onDismiss: () => {},
+      }
+    );
+
+    // Customize Alert based on type
+    Alert.alert(
+      '',
+      message,
+      [
+        { text: 'OK' }
+      ],
+      {
+        cancelable: false,
+        onDismiss: () => {},
+        style: { flexDirection: 'row', alignItems: 'center' },
+        icon: (
+          <Icon
+            name={iconName}
+            size={20}
+            color={iconColor}
+            style={{ marginRight: 10 }}
+          />
+        )
+      }
+    );
   };
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+    <ImageBackground source={background} style={styles.backgroundImage}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.logoContainer}>
-            <Image source={logoImage} style={styles.logo} />
+            <Image source={logo} style={styles.logo} />
           </View>
           <Text style={styles.welcomeText}>Bienvenido</Text>
           <View style={styles.inputContainer}>
-            <Icon name="envelope" size={20} color="gray" style={styles.icon} />
+            <Icon name="user" size={20} color="gray" style={styles.icon} />
             <TextInput
               placeholder="Usuario"
               placeholderTextColor="#888"
-              onChangeText={(text) => setEmail(text)}
-              value={email}
+              onChangeText={(text) => setUsuario(text)}
+              value={usuario}
               style={styles.input}
-              keyboardType="email-address"
             />
           </View>
           <View style={styles.inputContainer}>
@@ -96,16 +115,23 @@ function Login({ navigation }) {
             <TextInput
               placeholder="Contraseña"
               placeholderTextColor="#888"
-              secureTextEntry
-              onChangeText={(text) => setPassword(text)}
-              value={password}
+              secureTextEntry={!showPassword}
+              onChangeText={(text) => setClave(text)}
+              value={clave}
               style={styles.input}
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIconContainer}>
+              <MaterialCommunityIcons
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color="gray"
+              />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={handleLogin} style={styles.button}>
-            <Text style={styles.buttonText}>Iniciar sesión</Text>
+          <TouchableOpacity onPress={handleLogin} style={styles.button} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Cargando...' : 'Iniciar sesión'}</Text>
           </TouchableOpacity>
-          {isLoading && (
+          {loading && (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#2F9FFA" />
             </View>
@@ -114,7 +140,7 @@ function Login({ navigation }) {
       </View>
     </ImageBackground>
   );
-}
+};
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -128,7 +154,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Cambia el color de fondo del overlay a negro con transparencia
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -138,7 +164,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Fondo blanco con algo de transparencia
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -157,7 +183,7 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'black', // Cambia el color del texto de bienvenida a blanco
+    color: 'black',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -166,7 +192,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     marginBottom: 15,
-    borderRadius: 30, // Bordes más redondeados
+    borderRadius: 30,
     paddingHorizontal: 15,
     backgroundColor: 'white',
     borderWidth: 1,
@@ -184,6 +210,9 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     paddingLeft: 10,
+  },
+  eyeIconContainer: {
+    marginLeft: 10,
   },
   button: {
     backgroundColor: '#2F9FFA',
@@ -211,4 +240,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Login;
+export default LoginScreen;
